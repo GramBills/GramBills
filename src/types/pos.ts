@@ -177,3 +177,26 @@ export type ShopSettingsForm = Pick<
   | 'defaultPrintSize'
   | 'termsAndConditions'
 >;
+
+export type ProductForm = Pick<
+  Product,
+  | 'skuCode'
+  | 'barcode'
+  | 'name'
+  | 'nameLocal'
+  | 'category'
+  | 'brand'
+  | 'unit'
+  | 'purchasePrice'
+  | 'mrp'
+  | 'sellingPrice'
+  | 'minSellingPrice'
+  | 'gstRate'
+  | 'taxInclusive'
+  | 'hsnCode'
+  | 'stockQty'
+  | 'lowStockThreshold'
+  | 'trackSerialImei'
+  | 'defaultWarrantyMonths'
+  | 'rackLocation'
+>;

@@ -1,5 +1,7 @@
 import {
   forwardRef,
+  useEffect,
+  useId,
   type ButtonHTMLAttributes,
   type HTMLAttributes,
   type InputHTMLAttributes,
@@ -7,7 +9,14 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import {
+  CheckCircle2,
+  Info,
+  X,
+  XCircle,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -281,5 +290,169 @@ export function StatCard({
         </span>
       </div>
     </Card>
+  );
+}
+
+export interface ModalProps {
+  open: boolean;
+  title: string;
+  description?: string;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+  size?: 'md' | 'lg' | 'xl';
+}
+
+const modalSizes: Record<NonNullable<ModalProps['size']>, string> = {
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+};
+
+export function Modal({
+  open,
+  title,
+  description,
+  onClose,
+  children,
+  footer,
+  size = 'lg',
+}: ModalProps) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, onClose]);
+
+  if (!open) {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-sm sm:items-center"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={cn(
+          'my-8 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl',
+          modalSizes[size],
+        )}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+          <div>
+            <h2
+              id={titleId}
+              className="text-lg font-bold tracking-tight text-slate-900"
+            >
+              {title}
+            </h2>
+            {description ? (
+              <p className="mt-1 text-sm leading-5 text-slate-500">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close dialog"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="max-h-[calc(100vh-13rem)] overflow-y-auto px-5 py-4">
+          {children}
+        </div>
+        {footer ? (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+export interface ToastMessage {
+  tone: 'success' | 'error' | 'info';
+  message: string;
+}
+
+const toastTones: Record<ToastMessage['tone'], string> = {
+  success: 'bg-emerald-700 text-white',
+  error: 'bg-rose-600 text-white',
+  info: 'bg-slate-900 text-white',
+};
+
+export function Toast({
+  message,
+  onDismiss,
+}: {
+  message: ToastMessage | null;
+  onDismiss: () => void;
+}) {
+  useEffect(() => {
+    if (!message) {
+      return;
+    }
+    const timer = window.setTimeout(onDismiss, 4500);
+    return () => window.clearTimeout(timer);
+  }, [message, onDismiss]);
+
+  if (!message) {
+    return null;
+  }
+
+  const Icon =
+    message.tone === 'success'
+      ? CheckCircle2
+      : message.tone === 'error'
+        ? XCircle
+        : Info;
+
+  return createPortal(
+    <div
+      className={cn(
+        'fixed bottom-6 right-6 z-[60] flex max-w-sm items-start gap-2 rounded-xl px-4 py-3 text-sm font-medium shadow-lg',
+        toastTones[message.tone],
+      )}
+      role="status"
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <span className="min-w-0 flex-1">{message.message}</span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="rounded p-0.5 opacity-70 transition hover:opacity-100"
+        aria-label="Dismiss message"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>,
+    document.body,
   );
 }
