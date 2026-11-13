@@ -23,20 +23,20 @@ import type {
   PrintSize,
   ShopSettings,
   ShopSettingsForm,
-} from '../types/pos';
+} from '../../types/pos';
 import {
   downloadBackup,
   getLastBackupAt,
   restoreBackupFromFile,
-} from '../db/backup';
-import { formatDateTime } from '../lib/date';
-import { cn } from '../lib/cn';
-import { formatBytes } from '../lib/format';
-import { formatInvoiceNumber } from '../lib/invoiceNumber';
-import { buildUpiUri } from '../lib/upi';
-import { validateShopForm, type ShopFormErrors } from '../lib/validation';
-import { useTranslation } from '../i18n/useTranslation';
-import { updateShopSettings } from '../services/settings';
+} from '../../db/backup';
+import { formatDateTime } from '../../lib/date';
+import { cn } from '../../lib/cn';
+import { formatBytes } from '../../lib/format';
+import { formatInvoiceNumber } from '../../lib/invoiceNumber';
+import { buildUpiUri } from '../../lib/upi';
+import { validateShopForm, type ShopFormErrors } from '../../lib/validation';
+import { useTranslation } from '../../i18n/useTranslation';
+import { updateShopSettings } from '../../services/settings';
 import {
   Badge,
   Button,
@@ -46,7 +46,7 @@ import {
   PageHeader,
   Select,
   Textarea,
-} from './ui/primitives';
+} from '../../components/ui/primitives';
 
 interface ShopSettingsViewProps {
   settings: ShopSettings;

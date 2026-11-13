@@ -106,48 +106,51 @@ Key invariants:
 
 ```text
 package.json, vite.config.ts, tsconfig*.json, tailwind config, index.html
-public/                       icons, manifest assets
-src/main.tsx
-src/App.tsx                   view router + global shortcuts
-src/index.css                 Tailwind + print styles
-src/types/pos.ts              all entities, enums, form types
-src/db/database.ts            GramBillDB, schema versions, hooks
-src/db/seed.ts                shop settings, 15 products, 4 customers
-src/db/backup.ts              export/import JSON, validate, restore
-src/db/reconcile.ts           stock/khata consistency checks
-src/services/invoices.ts      checkout transaction, cancel/return
-src/services/products.ts      CRUD, barcode generation, stock-in
-src/services/customers.ts     CRUD, udhaar payments
-src/lib/money.ts              round2, INR formatting, margin
-src/lib/gst.ts                taxable/tax/discount allocation
-src/lib/invoiceNumber.ts      prefix + sequence formatting
-src/lib/upi.ts                NPCI URI + QR payload
-src/lib/whatsapp.ts           receipt/reminder message builders
-src/lib/csv.ts                inventory export/import/template
-src/lib/date.ts               ISO, warranty expiry, ranges
-src/lib/id.ts                 UUID + barcode sequence helpers
-src/i18n/translations.ts      English/Hinglish dictionary
-src/utils/sound.ts            Web Audio beeps/chime
+public/                         icons, manifest assets
+docs/                           architecture, backend plan, source PDF
+src/main.tsx                    database bootstrap + React mount
+src/app/App.tsx                 hash router + global shortcuts
+src/app/Layout.tsx              sidebar, top bar, offline badge
+src/app/navigation.ts           ViewKey + navigation items
+src/index.css                   Tailwind + print styles
+src/types/pos.ts                all entities, enums, form types
+src/db/database.ts              GramBillDB, schema versions, hooks
+src/db/seed.ts                  shop settings, 15 products, 4 customers
+src/db/backup.ts                export/import JSON, validate, restore
+src/db/reconcile.ts             stock/khata consistency checks
+src/services/invoices.ts        checkout transaction, cancel/return
+src/services/products.ts        CRUD, barcode generation, stock-in
+src/services/customers.ts       CRUD, udhaar payments
+src/lib/money.ts                round2, INR formatting, margin
+src/lib/gst.ts                  taxable/tax/discount allocation
+src/lib/invoiceNumber.ts        prefix + sequence formatting
+src/lib/upi.ts                  NPCI URI + QR payload
+src/lib/whatsapp.ts             receipt/reminder message builders
+src/lib/csv.ts                  inventory export/import/template
+src/lib/date.ts                 ISO, warranty expiry, ranges
+src/lib/id.ts                   UUID + barcode sequence helpers
+src/lib/sound.ts                Web Audio beeps/chime
+src/i18n/translations.ts        English/Hinglish dictionary
 src/hooks/useBarcodeScanner.ts
 src/hooks/useKeyboardShortcuts.ts
 src/hooks/useSettings.ts
-src/components/Layout.tsx
-src/components/ShopSettingsView.tsx
-src/components/POSCounterView.tsx
-src/components/InventoryView.tsx
-src/components/BarcodeStudioView.tsx
-src/components/KhataLedgerView.tsx
-src/components/InvoicesWarrantyView.tsx
-src/components/ReportsDashboardView.tsx
-src/components/CheckoutModal.tsx
-src/components/InvoiceReceiptModal.tsx
-src/components/ProductModal.tsx
-src/components/StockInModal.tsx
-src/components/CustomerPicker.tsx
-src/components/BarcodeSvg.tsx
-src/components/UpiQr.tsx
-src/components/PrintSheets.tsx  thermal/A4 invoice + sticker sheets
-src/components/ui/              Button, Modal, Field, Badge, Toast
+src/features/pos/POSCounterView.tsx
+src/features/pos/CheckoutModal.tsx
+src/features/pos/InvoiceReceiptModal.tsx
+src/features/pos/CustomerPicker.tsx
+src/features/pos/UpiQr.tsx
+src/features/inventory/InventoryView.tsx
+src/features/inventory/ProductModal.tsx
+src/features/inventory/StockInModal.tsx
+src/features/barcode/BarcodeStudioView.tsx
+src/features/barcode/BarcodeSvg.tsx
+src/features/khata/KhataLedgerView.tsx
+src/features/invoices/InvoicesWarrantyView.tsx
+src/features/reports/ReportsDashboardView.tsx
+src/features/settings/ShopSettingsView.tsx
+src/components/ModulePlaceholder.tsx
+src/components/PrintSheets.tsx   thermal/A4 invoice + sticker sheets
+src/components/ui/               Button, Modal, Field, Badge, Toast
 src/test/setup.ts, src/**/*.test.ts(x)
 ```
 

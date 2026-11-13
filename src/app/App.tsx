@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Layout } from './components/Layout';
-import { NAV_ITEMS, type ViewKey } from './components/navigation';
-import { POSCounterView } from './components/POSCounterView';
-import { InventoryView } from './components/InventoryView';
-import { BarcodeStudioView } from './components/BarcodeStudioView';
-import { KhataLedgerView } from './components/KhataLedgerView';
-import { InvoicesWarrantyView } from './components/InvoicesWarrantyView';
-import { ReportsDashboardView } from './components/ReportsDashboardView';
-import { ShopSettingsView } from './components/ShopSettingsView';
-import { useTranslation } from './i18n/useTranslation';
-import { setLanguageMode } from './services/settings';
-import type { LanguageMode } from './types/pos';
+import { Layout } from './Layout';
+import { NAV_ITEMS, type ViewKey } from './navigation';
+import { POSCounterView } from '../features/pos/POSCounterView';
+import { InventoryView } from '../features/inventory/InventoryView';
+import { BarcodeStudioView } from '../features/barcode/BarcodeStudioView';
+import { KhataLedgerView } from '../features/khata/KhataLedgerView';
+import { InvoicesWarrantyView } from '../features/invoices/InvoicesWarrantyView';
+import { ReportsDashboardView } from '../features/reports/ReportsDashboardView';
+import { ShopSettingsView } from '../features/settings/ShopSettingsView';
+import { useTranslation } from '../i18n/useTranslation';
+import { setLanguageMode } from '../services/settings';
+import type { LanguageMode } from '../types/pos';
 
 const VIEW_KEYS = NAV_ITEMS.map((item) => item.key);
 

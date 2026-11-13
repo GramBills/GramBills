@@ -1,5 +1,5 @@
 import { Barcode } from 'lucide-react';
-import { ModulePlaceholder } from './ModulePlaceholder';
+import { ModulePlaceholder } from '../../components/ModulePlaceholder';
 
 export function BarcodeStudioView() {
   return (

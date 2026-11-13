@@ -1,5 +1,5 @@
 import { Package } from 'lucide-react';
-import { ModulePlaceholder } from './ModulePlaceholder';
+import { ModulePlaceholder } from '../../components/ModulePlaceholder';
 
 export function InventoryView() {
   return (

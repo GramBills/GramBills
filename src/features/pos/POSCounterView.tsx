@@ -9,17 +9,17 @@ import {
   Users,
 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../db/database';
-import { formatINR, formatINR0 } from '../lib/money';
-import { APP_VERSION } from '../lib/appInfo';
-import type { ViewKey } from './navigation';
+import { db } from '../../db/database';
+import { formatINR, formatINR0 } from '../../lib/money';
+import { APP_VERSION } from '../../lib/appInfo';
+import type { ViewKey } from '../../app/navigation';
 import {
   Badge,
   Button,
   Card,
   PageHeader,
   StatCard,
-} from './ui/primitives';
+} from '../../components/ui/primitives';
 
 interface POSCounterViewProps {
   onNavigate: (view: ViewKey) => void;

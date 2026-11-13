@@ -1,5 +1,5 @@
 import { ReceiptText } from 'lucide-react';
-import { ModulePlaceholder } from './ModulePlaceholder';
+import { ModulePlaceholder } from '../../components/ModulePlaceholder';
 
 export function InvoicesWarrantyView() {
   return (
