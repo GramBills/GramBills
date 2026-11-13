@@ -111,6 +111,7 @@ docs/
   PLAN.md              Architecture, file map, and phase plan
   HARDWARE_REQUIREMENTS.md
                        Laptop, A4 printer, scanner, and label hardware guide
+  SHOP_SETUP_GUIDE.md  Hosting, first-time setup, backup, and handover steps
   BACKEND_SCALING_AND_INTEGRATION.md
                        Future cloud, multi-shop, and integration design
   Rural Pos V1 Master Plan And Llm Prompt.md.pdf
@@ -147,6 +148,8 @@ See [docs/PLAN.md](./docs/PLAN.md) for the detailed architecture and acceptance
 criteria. See
 [docs/HARDWARE_REQUIREMENTS.md](./docs/HARDWARE_REQUIREMENTS.md) for the
 recommended laptop, A4 printer, barcode scanner, and label hardware. See
+[docs/SHOP_SETUP_GUIDE.md](./docs/SHOP_SETUP_GUIDE.md) for hosting, first-time
+shop setup, backups, and the handover checklist. See
 [docs/BACKEND_SCALING_AND_INTEGRATION.md](./docs/BACKEND_SCALING_AND_INTEGRATION.md)
 for the future cloud mirror, owner dashboard, catalog import, and multi-shop
 scaling plan.
