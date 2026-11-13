@@ -7,10 +7,10 @@ GramBill POS runs entirely on the shop laptop. No internet connection is
 required for billing, stock, customer balances, or reports. Data is stored in
 the browser's IndexedDB database and can be exported to a JSON backup file.
 
-> **Current status:** Phase 1 foundation is complete. The app shell, local
-> database, seed data, shop settings, language switch, and backup/restore are
-> working. Inventory editing, barcode printing, billing, scanning, invoices,
-> khata entries, and reports are planned for Phases 2–4.
+> **Current status:** Phase 2 inventory and barcode work is complete. The app
+> shell, local database, shop settings, backup/restore, product CRUD, stock-in,
+> CSV import/export, and CODE128 label printing are working. Billing, scanning,
+> invoices, khata entries, and reports are planned for Phases 3–4.
 
 ## What works today
 
@@ -23,8 +23,9 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 | Live dashboard counts and low-stock stats | Working |
 | JSON backup and restore | Working |
 | USB barcode scanning | Phase 3 |
-| Product add/edit and stock adjustments | Phase 2 |
-| Barcode label generation and printing | Phase 2 |
+| Product add/edit, floor price, and stock-in | Working |
+| CSV product import, export, and template | Working |
+| CODE128 barcode studio and A4/thermal labels | Working |
 | Billing cart, checkout, and invoice printing | Phase 3 |
 | Udhaar ledger, warranty lookup, and reports | Phase 4 |
 | Installable PWA / offline service worker | Phase 5 |
@@ -155,15 +156,16 @@ npm run lint
 ```
 
 Current coverage includes money rounding, date/warranty helpers, invoice
-numbering, UPI URIs, shop settings validation, barcode/SKU helpers, and JSON
-backup validation/restore.
+numbering, UPI URIs, shop and product validation, barcode/SKU helpers, CSV
+round-trips, stock-in movements, label pagination/skip offsets, and JSON backup
+validation/restore.
 
 ## Known limitations
 
-- Inventory and billing screens are placeholders in Phase 1.
+- Billing, khata, warranty lookup, and reports are placeholders until Phases 3–4.
 - No multi-counter sync or cloud backup yet.
 - Invoice cancellation/return is designed as full-invoice only.
-- Barcode scanning and printing require Phase 2/3 implementation.
+- Barcode scanning and invoice printing are Phase 3 work; label printing is ready.
 - One billing laptop per shop is the intended V1 deployment model.
 
 ## Source specification
