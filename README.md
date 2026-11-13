@@ -7,10 +7,12 @@ GramBill POS runs entirely on the shop laptop. No internet connection is
 required for billing, stock, customer balances, or reports. Data is stored in
 the browser's IndexedDB database and can be exported to a JSON backup file.
 
-> **Current status:** Phase 2 inventory and barcode work is complete. The app
-> shell, local database, shop settings, backup/restore, product CRUD, stock-in,
-> CSV import/export, and CODE128 label printing are working. Billing, scanning,
-> invoices, khata entries, and reports are planned for Phases 3–4.
+> **Current status:** Phase 3 billing work is complete. The app now supports
+> product search and barcode scanning, a five-tab hold counter, serial/IMEI and
+> warranty capture, GST/Kachha bills, discounts, cash/UPI/card/split/udhaar
+> checkout, atomic invoice and stock updates, A4/thermal invoice printing, and
+> WhatsApp bill sharing. Khata ledger screens, warranty lookup, and reports are
+> planned for Phase 4.
 
 ## What works today
 
@@ -20,14 +22,16 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 | Seeded catalog (15 products) and 4 customers | Working |
 | Shop profile and invoice settings | Working |
 | English / Hinglish interface switch | Working |
-| Live dashboard counts and low-stock stats | Working |
+| Top-bar shop identity, offline badge, and language switch | Working |
 | JSON backup and restore | Working |
-| USB barcode scanning | Phase 3 |
+| USB barcode scanning and webcam fallback | Working |
 | Product add/edit, floor price, and stock-in | Working |
 | CSV product import, export, and template | Working |
 | CODE128 barcode studio and A4/thermal labels | Working |
-| Billing cart, checkout, and invoice printing | Phase 3 |
-| Udhaar ledger, warranty lookup, and reports | Phase 4 |
+| Billing cart, five hold tabs, and serial/IMEI capture | Working |
+| Cash/UPI/card/split/udhaar checkout and GST bills | Working |
+| A4/thermal invoice printing and WhatsApp sharing | Working |
+| Udhaar ledger screens, warranty lookup, and reports | Phase 4 |
 | Installable PWA / offline service worker | Phase 5 |
 
 ## Tech stack
@@ -91,7 +95,7 @@ src/
   app/                 App shell, hash routing, layout, and navigation
   components/          Shared UI primitives and placeholder component
   features/            Feature modules:
-    pos/               Counter foundation dashboard
+    pos/               Billing counter, checkout, receipts, holds, and scanner
     inventory/         Inventory management
     barcode/           Barcode studio
     khata/             Udhaar ledger
@@ -140,7 +144,7 @@ path.
 | --- | --- |
 | **Phase 1** | Foundation: app shell, database, seed data, settings, language, backup/restore |
 | **Phase 2** | Inventory and barcode studio: product CRUD, stock adjustments, search, labels |
-| **Phase 3** | Billing counter: scanner input, cart, payments, invoices, thermal/A4 printing |
+| **Phase 3** | Billing counter: scanner input, cart, payments, invoices, thermal/A4 printing — **complete** |
 | **Phase 4** | Khata ledger, warranty/serial lookup, daily sales and profit reports |
 | **Phase 5** | PWA polish: service worker, offline install, print tuning, performance |
 
@@ -164,16 +168,20 @@ npm run lint
 
 Current coverage includes money rounding, date/warranty helpers, invoice
 numbering, UPI URIs, shop and product validation, barcode/SKU helpers, CSV
-round-trips, stock-in movements, label pagination/skip offsets, and JSON backup
-validation/restore.
+round-trips, stock-in movements, label pagination/skip offsets, JSON backup
+validation/restore, GST/discount allocation, invoice checkout and stock
+updates, udhaar khata entries, payment validation, and WhatsApp receipt text.
 
 ## Known limitations
 
-- Billing, khata, warranty lookup, and reports are placeholders until Phases 3–4.
+- Khata ledger screens, warranty lookup, and sales/profit reports are Phase 4.
 - No multi-counter sync or cloud backup yet.
 - Invoice cancellation/return is designed as full-invoice only.
-- Barcode scanning and invoice printing are Phase 3 work; label printing is ready.
+- UPI QR is a payment request; the app does not confirm UPI payment automatically.
 - One billing laptop per shop is the intended V1 deployment model.
+- Camera scanning needs browser camera permission and a well-lit barcode.
+- A4/thermal print layouts should be checked on the shop's actual printer before
+  real billing.
 
 ## Source specification
 

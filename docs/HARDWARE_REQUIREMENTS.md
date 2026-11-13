@@ -12,8 +12,9 @@ The default plan is **A4 bill printing** instead of thermal receipt printing.
 - **Internet:** not required for daily billing after the app has loaded.
 - **Thermal receipt printer:** optional, not required for the A4-first setup.
 
-> Phase 2 currently supports A4/thermal **barcode label** printing. A4 invoice
-> printing and the in-app scanner workflow are implemented in Phase 3.
+> Phase 3 now supports A4/thermal **barcode label** printing, A4/thermal invoice
+> printing, USB scanner checkout, and a webcam scanner fallback. Verify print
+> alignment on the actual printer before real shop billing.
 
 ## 2. One-Shop Reference Kit
 
@@ -282,7 +283,7 @@ Before buying multiple units:
 | --- | --- |
 | Phase 1 | Laptop and browser only |
 | Phase 2 | A4 laser printer and A4 sticker sheets for barcode labels |
-| Phase 3 | A4 bill printing, barcode scanner, checkout |
+| Phase 3 | A4 bill printing, barcode scanner, checkout - complete |
 | Phase 4 | Same hardware; reports and warranty lookup |
 | Phase 5 | Print tuning and PWA/offline polish |
 

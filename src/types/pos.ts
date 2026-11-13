@@ -69,6 +69,7 @@ export interface InvoiceItem {
   productId: string;
   productName: string;
   barcode: string;
+  hsnCode?: string;
   quantity: number;
   unit: Unit;
   mrp: number;
@@ -94,6 +95,7 @@ export interface Invoice extends BaseEntity {
   customerName: string;
   customerPhone: string;
   customerVillage: string;
+  customerGstin?: string;
   items: InvoiceItem[];
   subtotal: number;
   itemDiscountTotal: number;

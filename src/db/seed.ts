@@ -464,7 +464,7 @@ export async function seedInitialData(database: GramBillDB): Promise<void> {
         upiPayeeName: 'Shree Electronics',
         invoicePrefix: 'INV-2026-',
         nextInvoiceNumber: 1,
-        defaultPrintSize: 'thermal_80mm',
+        defaultPrintSize: 'a4',
         languageMode: 'en',
         termsAndConditions:
           '1. Goods once sold will not be taken back. 2. Warranty as per manufacturer policy. 3. Please keep this bill for warranty claims.',
