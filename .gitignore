@@ -1,1 +1,60 @@
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+dev-dist/
+build/
+out/
+
+# Vite / tool caches
+.vite/
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# Test output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+
+# Environment and local secrets
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local customer data and backups
+grambill-backup-*.json
+backups/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.history/
+.fleet/
+
+# Misc
+*.tgz
+.tmp/
+temp/
