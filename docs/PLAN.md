@@ -135,10 +135,13 @@ src/hooks/useBarcodeScanner.ts
 src/hooks/useKeyboardShortcuts.ts
 src/hooks/useSettings.ts
 src/features/pos/POSCounterView.tsx
-src/features/pos/CheckoutModal.tsx
+src/features/pos/cart.ts              cart totals, floor checks, 5 hold slots
+src/features/pos/CheckoutModal.tsx    cash/UPI/card/split/udhaar checkout
 src/features/pos/InvoiceReceiptModal.tsx
 src/features/pos/CustomerPicker.tsx
+src/features/pos/CameraScannerModal.tsx
 src/features/pos/UpiQr.tsx
+src/features/pos/useUpiQrDataUrl.ts
 src/features/inventory/InventoryView.tsx
 src/features/inventory/ProductModal.tsx
 src/features/inventory/StockInModal.tsx
@@ -158,6 +161,8 @@ src/test/setup.ts, src/**/*.test.ts(x)
 
 ### Phase 1 - Foundation (Prompt 1)
 
+**Status:** Complete and verified.
+
 Scaffold Vite + React + TypeScript + Tailwind + Dexie. Define all tables and
 indexes. Seed shop settings, 15 products, and 4 customers. Add sound utility,
 i18n dictionary, layout with offline badge and `Alt+1..7` navigation, shop
@@ -171,6 +176,8 @@ Acceptance:
 - Lint, typecheck, tests, and build pass.
 
 ### Phase 2 - Inventory & Barcode (Prompt 2)
+
+**Status:** Complete and verified.
 
 Inventory summary cards and filters. Product CRUD with floor price and margin.
 Quick stock-in. CSV import/export and template. Serial/IMEI and warranty fields.
@@ -187,6 +194,11 @@ Acceptance:
 
 ### Phase 3 - POS & Checkout (Prompt 3)
 
+**Status:** Complete. Automated checks pass and Chrome smoke testing covered
+cash checkout, udhaar checkout, global scanner input, unknown-barcode quick-add,
+hold tabs, stock deduction, and A4 print-sheet rendering. Camera capture and
+physical thermal/A4 printer output still need real-hardware verification.
+
 Global hardware scanner hook and webcam fallback. Five hold tabs. Kachha/Pakka
 toggle. Serial/IMEI and warranty capture. Floor-price warnings. Item and extra
 discounts. Cash, UPI, split, and udhaar checkout. Dynamic UPI QR. Atomic commit.
@@ -201,6 +213,8 @@ Acceptance:
 - WhatsApp text includes warranty dates and remaining balance.
 
 ### Phase 4 - Khata, Warranty, Reports (Prompt 4)
+
+**Status:** Next.
 
 Khata dashboard with village filter, passbook, payment recording, and WhatsApp
 reminder. Invoice/serial/phone search with live warranty status and

@@ -3,9 +3,10 @@
 This guide explains how to give GramBill POS to a shop and help the shop owner
 start using it safely.
 
-> **Current status:** Phase 2 is complete. The shop can manage products, stock,
-> CSV imports, and barcode labels. Billing, customer receipts, scanner checkout,
-> invoices, khata, and reports are not available until Phase 3/4.
+> **Current status:** Phase 3 is complete. The shop can manage products, stock,
+> CSV imports, barcode labels, scan products, create GST or Kachha bills, accept
+> cash/UPI/card/split/udhaar payments, print A4 or thermal bills, and share bills
+> on WhatsApp. Khata ledger screens, warranty lookup, and reports are Phase 4.
 
 ## 1. What Works Today
 
@@ -18,22 +19,29 @@ The shop can use these features now:
 - Barcode generation and CODE128 label printing.
 - A4 label sheets: 65-up (38 x 21 mm) and 40-up (48 x 25 mm).
 - Thermal label layout: 50 x 30 mm.
+- USB barcode scanner checkout and webcam camera fallback.
+- Billing cart with five hold tabs.
+- GST (Pakka) and non-GST (Kachha) bills.
+- Serial/IMEI capture, warranty months, and warranty expiry dates.
+- Item discount, extra bill discount, and below-floor price warning.
+- Cash, UPI, card, split, and udhaar payments.
+- Dynamic UPI QR payment requests.
+- A4 and thermal invoice printing.
+- WhatsApp bill sharing.
+- Invoice storage, stock deduction, and udhaar khata entries.
 - JSON backup and restore.
 - English / Hinglish interface switch.
 
 These features are **not available yet**:
 
-- Customer billing cart and checkout.
-- A4 customer bill/receipt printing.
-- Barcode scanner checkout workflow.
-- Invoice numbers and sales records.
-- Khata/udhaar entries.
-- Warranty and serial/IMEI lookup.
-- Sales and profit reports.
+- Khata ledger screens and payment recording UI.
+- Warranty and serial/IMEI search screens.
+- Sales, cash, UPI, and profit reports.
+- Invoice cancellation/return screens.
 - Cloud sync between shops or laptops.
 
-Do not tell the shop that billing is ready. For now, the shop can use a manual
-receipt book or an external invoice template until Phase 3 is complete.
+Billing is ready for a controlled pilot. Before real shop use, test one A4 bill,
+one thermal bill if used, and one scanner checkout on the actual shop hardware.
 
 ## 2. How the Shop Will Access the App
 
@@ -126,7 +134,7 @@ Open **Shop Settings** and fill in:
 - GSTIN, if the shop is GST registered
 - UPI ID and payee name
 - Invoice prefix, for example `SE`
-- Default print size: select **A4** for the planned A4 bill format
+- Default print size: select **A4** for normal A4 bill printing
 - Terms and conditions
 
 Click **Save settings**.
@@ -201,26 +209,41 @@ Buy one small pack of sticker sheets first. Different brands have slightly
 different gaps and margins. Do not buy a large box until one sheet prints
 correctly.
 
-## 6. A4 Bill Printing
+## 6. A4 and Thermal Bill Printing
 
-A4 bill printing is planned for Phase 3. The app does not generate customer
-bills yet.
+Billing is available now. The normal workflow is:
 
-When Phase 3 is available, the expected workflow will be:
+1. Scan or search products and add them to the bill.
+2. Enter serial/IMEI numbers when the product tracks them.
+3. Add a customer if the bill is udhaar or the customer wants a WhatsApp bill.
+4. Apply item discount or extra bill discount if needed.
+5. Select cash, UPI, card, split, or udhaar and complete the bill.
+6. Print the A4 bill, print a thermal bill, or share it on WhatsApp.
 
-1. Add products to the bill.
-2. Enter customer details if needed.
-3. Apply discount and select payment mode.
-4. Save the invoice.
-5. Print the A4 bill.
+A4 print settings:
 
-Until then, do not use the app as the only billing record. Use a manual receipt
-book or a temporary external invoice template.
+- Paper size: A4
+- Scale: 100% / Actual size
+- Margins: Default or none
+- Headers and footers: Off
+- Background graphics: On
+
+Before the shop starts real billing:
+
+1. Complete one test bill with a real product.
+2. Click **Print A4 bill** and save as PDF first.
+3. Check shop name, address, GSTIN, invoice number, item lines, tax, total, and
+   payment mode.
+4. Print one page on the actual A4 printer.
+5. Check alignment and font size, then adjust printer scaling if needed.
+6. If using a thermal printer, repeat the test with **Print thermal**.
+
+The UPI QR is a payment request only. The shop must confirm the payment in the
+UPI app before completing the bill.
 
 ## 7. Barcode Scanner
 
-A USB barcode scanner is needed when Phase 3 checkout is available. A scanner
-can be tested now because it works like a keyboard.
+The billing counter now supports USB scanner checkout and a webcam fallback.
 
 Recommended scanner:
 
@@ -229,9 +252,20 @@ Recommended scanner:
 - 2D imager if the shop also wants QR-code or screen scanning.
 - Enter/CR suffix after each scan.
 
-Before Phase 3, the scanner can be tested in Notepad. It will type the barcode
-number into any text field. The app's full scanner checkout flow is not active
-yet.
+How to test:
+
+1. Open the **Billing counter**.
+2. Click an empty area so no input box is selected.
+3. Scan a product barcode.
+4. Confirm the product is added to the bill and the scanner beep plays.
+5. Scan an unknown barcode. The app should open **Add product** with the barcode
+   already filled in.
+6. If the scanner types into an input box instead, click outside the input or
+   use the F2 search box and press Enter after scanning.
+
+The **Camera scan** button uses the laptop or phone camera. Allow camera
+permission when the browser asks. Camera scanning works best in good light and
+with a clean, flat barcode.
 
 ## 8. Backup and Data Safety
 
@@ -255,11 +289,14 @@ when necessary and after downloading a fresh backup of the current data.
 
 1. Open the app in the same browser.
 2. Check that the shop name and product count look correct.
-3. Use Inventory for stock changes.
-4. Print barcode labels when new stock arrives.
-5. Download a backup at the end of the week.
-6. Keep the laptop and printer on a UPS/surge protector.
-7. Report any error message to the support contact.
+3. Use **Billing counter** for customer bills.
+4. Use Inventory for stock changes and stock-in.
+5. Print barcode labels when new stock arrives.
+6. Use hold tabs for customers who are still shopping or waiting to pay.
+7. Print or share the bill after each sale.
+8. Download a backup at the end of the week.
+9. Keep the laptop and printer on a UPS/surge protector.
+10. Report any error message to the support contact.
 
 ## 10. Multiple Shops
 
@@ -311,9 +348,16 @@ Before handing the URL to a shop:
 - [ ] Shop settings save correctly.
 - [ ] CSV template downloads and imports correctly.
 - [ ] Barcode label preview prints correctly on a test sheet.
+- [ ] USB scanner adds a product to the bill.
+- [ ] Unknown barcode opens Add product with the barcode prefilled.
+- [ ] Cash checkout completes and stock decreases.
+- [ ] Udhaar checkout completes and the customer balance increases.
+- [ ] A4 bill test print matches the shop details and totals.
+- [ ] Thermal bill test print is checked if a thermal printer is used.
+- [ ] WhatsApp bill opens with the correct customer phone and bill text.
 - [ ] Backup downloads successfully.
 - [ ] Restore works on a test laptop with a test backup.
-- [ ] The shop understands that billing is not available yet.
+- [ ] The shop understands billing is available and has been trained.
 - [ ] The shop has the support contact and backup instructions.
 
 ## 13. Troubleshooting
@@ -335,10 +379,12 @@ Before handing the URL to a shop:
 
 ### The scanner types the barcode into the wrong place
 
-- Click the correct input field first.
+- Click an empty area of the billing counter, then scan again.
 - Confirm the scanner is in keyboard-wedge/HID mode.
 - Confirm the scanner sends Enter after the barcode.
-- Full scanner checkout is a Phase 3 feature.
+- If an input is selected, the app intentionally lets the scanner type there.
+  Use the F2 search box and press Enter, or click outside the input first.
+- Check that the barcode exists in Inventory. Unknown barcodes open Add product.
 
 ### The printer does not appear
 
@@ -374,8 +420,9 @@ First steps:
 5. Download the first JSON backup from Shop Settings.
 
 Important:
-- Billing and customer bill printing are not available yet.
-- Use a manual receipt book until Phase 3 is ready.
+- Billing, A4 bill printing, and WhatsApp bill sharing are available.
+- Test one A4 bill and one scanner checkout before real use.
+- UPI QR is a payment request; confirm payment in the UPI app.
 - Download a backup every week and keep it in two places.
 
 Support contact:
@@ -384,11 +431,12 @@ Support contact:
 
 ## 15. Current Limitations
 
-- No billing or A4 customer bill printing.
-- No invoice storage or sales reports.
-- No scanner checkout workflow.
-- No khata/udhaar ledger.
+- No khata ledger screen, warranty lookup, or sales/profit reports yet.
+- No invoice cancellation/return screen yet.
 - No cloud sync or multi-laptop sync.
+- UPI QR is a payment request, not automatic payment confirmation.
+- Camera scanning needs browser camera permission and good lighting.
+- A4/thermal print layouts must be checked on the shop's actual printer.
 - No service worker yet, so the app needs internet to load unless served
   locally.
 - Browser storage can be cleared by the user or by the operating system.

@@ -33,8 +33,9 @@ interface ProductModalProps {
   open: boolean;
   product: Product | null;
   categories: string[];
+  initialBarcode?: string;
   onClose: () => void;
-  onSaved: (message: string) => void;
+  onSaved: (message: string, product?: Product) => void;
 }
 
 function inputNumber(value: number): string {
@@ -49,6 +50,7 @@ export function ProductModal({
   open,
   product,
   categories,
+  initialBarcode = '',
   onClose,
   onSaved,
 }: ProductModalProps) {
@@ -61,10 +63,13 @@ export function ProductModal({
     if (!open) {
       return;
     }
-    setForm(product ? productToForm(product) : emptyProductForm());
+    const nextForm = product
+      ? productToForm(product)
+      : { ...emptyProductForm(), barcode: initialBarcode };
+    setForm(nextForm);
     setErrors({});
     setSubmitError(null);
-  }, [open, product]);
+  }, [open, product, initialBarcode]);
 
   const profit = useMemo(
     () => calcProfit(form.sellingPrice, form.purchasePrice),
@@ -99,11 +104,11 @@ export function ProductModal({
     setSubmitError(null);
     try {
       if (product) {
-        await updateProduct(product.id, cleaned);
-        onSaved('Product updated.');
+        const saved = await updateProduct(product.id, cleaned);
+        onSaved('Product updated.', saved);
       } else {
-        await createProduct(cleaned);
-        onSaved('Product added to inventory.');
+        const saved = await createProduct(cleaned);
+        onSaved('Product added to inventory.', saved);
       }
       onClose();
     } catch (error) {

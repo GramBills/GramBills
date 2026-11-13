@@ -4,6 +4,7 @@ import {
   calcProfit,
   formatINR,
   formatINR0,
+  formatINRInWords,
   round2,
 } from './money';
 
@@ -19,6 +20,16 @@ describe('money', () => {
     expect(formatINR(1234.5)).toContain('1,234.50');
     expect(formatINR0(1234.5)).toContain('1,235');
     expect(formatINR(0)).toContain('0.00');
+  });
+
+  it('formats rupee amounts in Indian words', () => {
+    expect(formatINRInWords(0)).toBe('Zero Rupees Only');
+    expect(formatINRInWords(110)).toBe('One Hundred Ten Rupees Only');
+    expect(formatINRInWords(1234.5)).toBe(
+      'One Thousand Two Hundred Thirty Four Rupees and Fifty Paise Only',
+    );
+    expect(formatINRInWords(125000)).toBe('One Lakh Twenty Five Thousand Rupees Only');
+    expect(formatINRInWords(0.999)).toBe('One Rupee Only');
   });
 
   it('calculates profit and margin', () => {

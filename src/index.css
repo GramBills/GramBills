@@ -55,12 +55,34 @@ textarea {
 }
 
 @media print {
-  body:has(.label-print-sheet) #root {
+  body:has(.label-print-sheet) > *:not(.label-print-sheet),
+  body:has(.invoice-print-sheet) > *:not(.invoice-print-sheet) {
     display: none !important;
   }
 
   .print-only {
     display: block !important;
+  }
+
+  .invoice-print-sheet {
+    color: #0f172a;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .invoice-page {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .invoice-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .invoice-page {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   .label-page {
