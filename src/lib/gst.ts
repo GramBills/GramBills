@@ -1,3 +1,4 @@
+import type { InvoiceType } from '../types/pos';
 import { round2 } from './money';
 
 export interface GstLineInput {
@@ -83,6 +84,7 @@ export function allocateProportionally(
 export function calculateLineTotals(
   line: GstLineInput,
   extraDiscountAmount = 0,
+  invoiceType: InvoiceType = 'gst_tax_invoice',
 ): GstLineTotals {
   const quantity = Math.max(0, safeNumber(line.quantity));
   const unitPrice = Math.max(0, safeNumber(line.unitPrice));
@@ -101,7 +103,11 @@ export function calculateLineTotals(
   let taxAmount: number;
   let totalAmount: number;
 
-  if (line.taxInclusive) {
+  if (invoiceType !== 'gst_tax_invoice') {
+    taxableAmount = netAmount;
+    taxAmount = 0;
+    totalAmount = netAmount;
+  } else if (line.taxInclusive) {
     taxableAmount = rate > 0 ? round2(netAmount / (1 + rate)) : netAmount;
     taxAmount = round2(netAmount - taxableAmount);
     totalAmount = netAmount;
@@ -125,6 +131,7 @@ export function calculateLineTotals(
 export function calculateInvoice(
   lines: GstLineInput[],
   extraBillDiscount = 0,
+  invoiceType: InvoiceType = 'gst_tax_invoice',
 ): GstInvoiceCalculation {
   const safeLines = lines.map((line) => {
     const quantity = Math.max(0, safeNumber(line.quantity));
@@ -156,7 +163,7 @@ export function calculateInvoice(
   );
 
   const calculatedLines = safeLines.map((line, index) =>
-    calculateLineTotals(line.input, extraAllocations[index]),
+    calculateLineTotals(line.input, extraAllocations[index], invoiceType),
   );
 
   const subtotal = round2(

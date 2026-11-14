@@ -121,7 +121,7 @@ export function InvoicesWarrantyView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="Phase 4"
+        eyebrow="Bills & warranty"
         title="Past Bills & Warranty Lookup"
         description="Search any bill by invoice number, customer phone/name, product or serial/IMEI. Check warranty status, reprint, share on WhatsApp, or reverse a bill."
       />

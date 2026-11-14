@@ -55,6 +55,7 @@ import {
   isBelowFloorPrice,
   loadHoldSlots,
   saveHoldSlots,
+  withPercentDiscount,
   type CartLine,
   type HoldBill,
   type HoldSlots,
@@ -150,9 +151,23 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
   );
 
   const totals = useMemo(
-    () => calculateCart(lines, extraBillDiscount),
-    [lines, extraBillDiscount],
+    () => calculateCart(lines, extraBillDiscount, invoiceType),
+    [lines, extraBillDiscount, invoiceType],
   );
+
+  const gstPricing = useMemo(() => {
+    if (invoiceType !== 'gst_tax_invoice' || lines.length === 0) {
+      return 'none';
+    }
+    const inclusive = lines.filter((line) => line.taxInclusive).length;
+    if (inclusive === lines.length) {
+      return 'included';
+    }
+    if (inclusive === 0) {
+      return 'added';
+    }
+    return 'mixed';
+  }, [lines, invoiceType]);
 
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -227,7 +242,13 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
 
   function updateLine(id: string, patch: Partial<CartLine>) {
     setLines((current) =>
-      current.map((line) => (line.id === id ? { ...line, ...patch } : line)),
+      current.map((line) => {
+        if (line.id !== id) {
+          return line;
+        }
+        const next = { ...line, ...patch };
+        return withPercentDiscount(next, next.discountPercent);
+      }),
     );
   }
 
@@ -241,17 +262,10 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
         });
         return;
       }
-      setLines((current) =>
-        current.map((line) =>
-          line.id === existing.id
-            ? {
-                ...line,
-                quantity: round2(line.quantity + 1),
-                stockQty: product.stockQty,
-              }
-            : line,
-        ),
-      );
+      updateLine(existing.id, {
+        quantity: round2(existing.quantity + 1),
+        stockQty: product.stockQty,
+      });
     } else {
       if (product.stockQty <= 0) {
         setToast({
@@ -421,7 +435,7 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
     if (index === activeSlot) {
       return {
         count: lines.length,
-        total: calculateCart(lines, extraBillDiscount).grandTotal,
+        total: calculateCart(lines, extraBillDiscount, invoiceType).grandTotal,
       };
     }
     const hold = holds[index];
@@ -430,7 +444,11 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
     }
     return {
       count: hold.items.length,
-      total: calculateCart(hold.items, hold.extraBillDiscount).grandTotal,
+      total: calculateCart(
+        hold.items,
+        hold.extraBillDiscount,
+        hold.invoiceType,
+      ).grandTotal,
     };
   }
 
@@ -640,7 +658,10 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
                 </h2>
                 <p className="text-xs text-slate-500">
                   {lines.length} line{lines.length === 1 ? '' : 's'} in Bill{' '}
-                  {activeSlot + 1}
+                  {activeSlot + 1} ·{' '}
+                  {invoiceType === 'gst_tax_invoice'
+                    ? 'Pakka GST invoice'
+                    : 'Kachha, no GST'}
                 </p>
               </div>
               <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5">
@@ -685,7 +706,7 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
             ) : (
               <div className="max-h-[480px] divide-y divide-slate-100 overflow-y-auto">
                 {lines.map((line) => {
-                  const lineTotals = calculateCartLine(line);
+                  const lineTotals = calculateCartLine(line, invoiceType);
                   const floorWarning = isBelowFloorPrice(line);
                   const serialCount = line.serialOrImeiNumbers.filter(Boolean)
                     .length;
@@ -793,22 +814,31 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
                         </label>
 
                         <label className="text-[11px] font-medium text-slate-500">
-                          Item discount
+                          Item discount %
                           <Input
                             type="number"
                             min="0"
+                            max="100"
                             step="0.01"
-                            value={line.discountAmount}
+                            value={line.discountPercent}
                             onChange={(event) =>
                               updateLine(line.id, {
-                                discountAmount: Math.max(
-                                  0,
-                                  numberFromInput(event.target.value),
+                                discountPercent: Math.min(
+                                  100,
+                                  Math.max(
+                                    0,
+                                    numberFromInput(event.target.value),
+                                  ),
                                 ),
                               })
                             }
                             className="mt-1 h-9 px-2 text-sm"
                           />
+                          {line.discountAmount > 0 ? (
+                            <span className="mt-1 block text-[10px] font-normal text-emerald-700">
+                              {formatINR(line.discountAmount)} off
+                            </span>
+                          ) : null}
                         </label>
 
                         <label className="text-[11px] font-medium text-slate-500">
@@ -872,7 +902,11 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
 
                       <div className="flex items-center justify-between gap-3 text-sm">
                         <span className="text-xs text-slate-500">
-                          Tax {formatINR(lineTotals.taxAmount)}
+                          {invoiceType === 'gst_tax_invoice'
+                            ? `GST ${line.gstRate}% ${formatINR(
+                                lineTotals.taxAmount,
+                              )}${line.taxInclusive ? ' incl.' : ' added'}`
+                            : 'Kachha · no GST'}
                         </span>
                         <span className="font-bold text-slate-900">
                           {formatINR(lineTotals.totalAmount)}
@@ -951,10 +985,23 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
                     </dd>
                   </div>
                 ) : null}
-                <div className="flex justify-between gap-3">
-                  <dt className="text-slate-500">Tax</dt>
-                  <dd>{formatINR(totals.taxAmount)}</dd>
-                </div>
+                {invoiceType === 'gst_tax_invoice' ? (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">
+                      {gstPricing === 'included'
+                        ? 'GST (included)'
+                        : gstPricing === 'added'
+                          ? 'GST (added)'
+                          : 'GST'}
+                    </dt>
+                    <dd>{formatINR(totals.taxAmount)}</dd>
+                  </div>
+                ) : (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">GST</dt>
+                    <dd className="font-medium text-slate-400">Not charged</dd>
+                  </div>
+                )}
                 {totals.roundOff !== 0 ? (
                   <div className="flex justify-between gap-3">
                     <dt className="text-slate-500">Round off</dt>
@@ -966,6 +1013,16 @@ export function POSCounterView({ onNavigate }: POSCounterViewProps) {
                   <dd>{formatINR(totals.grandTotal)}</dd>
                 </div>
               </dl>
+
+              {invoiceType === 'gst_tax_invoice' && lines.length > 0 ? (
+                <p className="text-[11px] leading-4 text-slate-500">
+                  {gstPricing === 'included'
+                    ? 'Selling prices include GST. The tax is shown on the invoice; the total stays the same.'
+                    : gstPricing === 'added'
+                      ? 'GST is added on top of the selling prices.'
+                      : 'Some prices include GST and some add it; totals follow each product setting.'}
+                </p>
+              ) : null}
 
               {belowFloorCount > 0 ? (
                 <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">

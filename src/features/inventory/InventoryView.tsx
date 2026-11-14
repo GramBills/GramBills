@@ -267,7 +267,7 @@ export function InventoryView() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Phase 2"
+        eyebrow="Catalog & stock"
         title="Inventory & Stock"
         description="Manage your catalog, floor prices, stock-ins, CSV imports and barcode readiness."
         actions={

@@ -24,6 +24,7 @@ export interface CheckoutLineInput {
   quantity: number;
   unitPrice: number;
   discountAmount: number;
+  discountPercent?: number;
   serialOrImeiNumbers: string[];
   warrantyMonths: number;
 }
@@ -264,6 +265,7 @@ export async function createInvoice(
           };
         }),
         input.extraBillDiscount,
+        input.invoiceType,
       );
 
       const cashPaid = safeMoney(input.payment.cashPaid);
@@ -339,6 +341,13 @@ export async function createInvoice(
           mrp: product.mrp,
           unitPrice: round2(line.unitPrice),
           discountAmount: lineTotals.itemDiscountAmount,
+          discountPercent:
+            lineTotals.grossAmount > 0
+              ? round2(
+                  (lineTotals.itemDiscountAmount / lineTotals.grossAmount) *
+                    100,
+                )
+              : 0,
           gstRate: product.gstRate,
           taxAmount: lineTotals.taxAmount,
           lineTotal: lineTotals.totalAmount,

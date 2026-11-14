@@ -168,6 +168,18 @@ Reports:
 - Low-stock list includes non-deleted products at or below threshold.
 - Suggested reorder qty is `max(1, ceil(threshold * 2 - stockQty))`.
 
+## Billing / GST Semantics
+
+- Pakka (`gst_tax_invoice`): GST applies. Tax-inclusive products (MRP style) keep tax inside the selling price; tax-exclusive products add GST on top.
+- Kachha (`non_gst_estimate`): no GST is calculated, added, or shown. Totals equal price minus discounts even for tax-exclusive products.
+- GST rate is fixed per product from `GST_RATE_OPTIONS` (`0/5/12/18/28`), not random. Seed products are all tax-inclusive, so Pakka totals do not rise; GST is extracted and shown.
+- Product checkbox is labeled `Price includes GST (MRP)`; unchecking it makes Pakka add the product's GST rate on top.
+- POS/checkout show `GST (included)` or `GST (added)` and each cart line shows its GST rate.
+- Item discount is entered as a percentage in POS; `CartLine.discountPercent` stores the percent, `discountAmount` is derived, and old held carts derive percent on load. Invoice items store both.
+- `calculateInvoice` / `calculateLineTotals` accept `invoiceType` (default `'gst_tax_invoice'`); POS cart, checkout, stored invoices, receipts, detail modal, WhatsApp receipt, and print sheets all respect it.
+- Old kachha invoices created before this change may still carry historical tax values; UI hides GST for them.
+- Production page eyebrows no longer show phase labels; they now use functional labels (Setup, Catalog & stock, Labels & printing, Udhaar & collections, Bills & warranty, Daily closing).
+
 ## Invoice / Print Notes
 
 - A4 invoice redesign is complete.
@@ -190,7 +202,7 @@ Last full run in this session:
 
 - `npm run typecheck` — passed
 - `npm run lint` — passed
-- `npm run test -- --run` — 19 files, 87 tests passed
+- `npm run test -- --run` — 20 files, 92 tests passed
 - `npm run build` — passed
 - Vite build warning: main JS chunk is ~922 kB (gzip ~266 kB). Code-splitting is a possible later optimization, not a blocker.
 
@@ -210,6 +222,7 @@ Chrome smoke tests completed this session:
 - Fixed returned/cancelled warranty counting issue.
 - Khata payment smoke test completed (headless Chrome via CDP, fresh profile): opened `#/khata`, selected Imran Khan, recorded a ₹500 UPI payment. Verified outstanding ₹2,200 → ₹1,700, `Collected today` ₹500, passbook showed `UPI payment received` `-₹500.00` and `Bal ₹1,700.00`, Toast showed new balance, and IndexedDB had exactly one `payment_received` entry with `amount=500`, `paymentMode=upi`, `balanceAfter=1700`. Script: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/cdp-khata-smoke.mjs`.
 - PWA offline smoke test completed against `npm run preview` (port 4173, headless Chrome on CDP 9225): service worker active and controlling the page, precache contained index/JS/CSS/manifest/icon, `navigator.onLine=false` after CDP offline emulation, page reloaded offline, and a cash bill was completed with `INV-2026-0001` persisted in IndexedDB (`grandTotal=110`, `status=completed`). No console errors. Script: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/cdp-pwa-offline.mjs`.
+- Kachha/Pakka GST + percentage discount smoke test passed (dev server, headless Chrome on CDP 9226): 10% item discount on a ₹110 inclusive bulb reduced the total to ₹99 in both Pakka and Kachha; Pakka showed a GST row, Kachha showed `Not charged`, and the stored `non_gst_estimate` invoice had `cgstTotal + sgstTotal = 0`, item tax 0, `discountAmount = 11`, `discountPercent = 10`, `grandTotal = 99`. Script: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/cdp-tax-smoke.mjs`.
 
 ## Pending Work
 
@@ -230,7 +243,10 @@ Chrome smoke tests completed this session:
 - Chrome CDP smoke testing uses `--remote-debugging-port=9223` or `9224`.
 - `--dump-dom` is unreliable because the app renders after async `initializeDatabase()`.
 - CDP helper scripts exist in `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/`:
-  - `cdp-khata-smoke.mjs` (current khata payment smoke test)
+  - `cdp-khata-smoke.mjs` (khata payment smoke test)
+  - `cdp-pwa-offline.mjs` (service worker offline smoke test)
+  - `cdp-tax-smoke.mjs` (Kachha/Pakka GST smoke test)
+  - `cdp-installability.mjs` (PWA installability check)
   - Older Phase 3/4 scripts may be absent; recreate as needed.
 - Headless Chrome launch used for smoke tests (Node v26 has global `WebSocket`):
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --remote-debugging-port=9224 --user-data-dir=<temp profile> --no-first-run --no-default-browser-check about:blank`
@@ -244,9 +260,10 @@ Chrome smoke tests completed this session:
 Do not commit unless the user explicitly asks.
 
 Current uncommitted work includes:
-- Modified: `src/db/database.ts`, `src/db/seed.ts`, `src/features/invoices/InvoicesWarrantyView.tsx`, `src/features/khata/KhataLedgerView.tsx`, `src/features/reports/ReportsDashboardView.tsx`, `src/lib/whatsapp.test.ts`, `src/lib/whatsapp.ts`, `src/services/invoices.test.ts`, `src/services/invoices.ts`, `src/types/pos.ts`, `README.md`, `docs/PLAN.md`, `vite.config.ts`, `package.json`, `package-lock.json`
-- New: `src/features/invoices/InvoiceDetailModal.tsx`, `src/features/khata/RecordPaymentModal.tsx`, `src/lib/reports.test.ts`, `src/lib/reports.ts`, `src/lib/warranty.test.ts`, `src/lib/warranty.ts`, `src/services/khata.test.ts`, `src/services/khata.ts`
-- Also new: this `AGENTS.md` memory file.
+- Kachha/Pakka GST behavior: `src/lib/gst.ts`, `src/features/pos/cart.ts`, `src/features/pos/POSCounterView.tsx`, `src/features/pos/CheckoutModal.tsx`, `src/features/pos/InvoiceReceiptModal.tsx`, `src/features/invoices/InvoiceDetailModal.tsx`, `src/services/invoices.ts`, `src/lib/whatsapp.ts`, `src/lib/gst.test.ts`.
+- Percentage item discount: `src/features/pos/cart.ts`, `src/features/pos/POSCounterView.tsx`, `src/services/invoices.ts`, `src/types/pos.ts`, `src/features/pos/cart.test.ts`; product GST hint in `src/features/inventory/ProductModal.tsx`.
+- Functional eyebrows replacing phase labels: `src/features/settings/ShopSettingsView.tsx`, `src/features/inventory/InventoryView.tsx`, `src/features/barcode/BarcodeStudioView.tsx`, `src/features/khata/KhataLedgerView.tsx`, `src/features/invoices/InvoicesWarrantyView.tsx`, `src/features/reports/ReportsDashboardView.tsx`, `src/components/ModulePlaceholder.tsx`.
+- `AGENTS.md` updated.
 
 ## How To Resume
 

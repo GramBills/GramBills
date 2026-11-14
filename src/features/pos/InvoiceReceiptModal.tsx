@@ -209,6 +209,9 @@ export function InvoiceReceiptModal({
                     </p>
                     <p className="text-xs text-slate-500">
                       {item.quantity} {item.unit} × {formatINR(item.unitPrice)}
+                      {item.discountAmount > 0
+                        ? ` · ${item.discountPercent ?? 0}% off`
+                        : ''}
                       {item.warrantyExpiryDate
                         ? ` · Warranty till ${formatDate(
                             item.warrantyExpiryDate,
@@ -238,12 +241,19 @@ export function InvoiceReceiptModal({
                   </span>
                 </div>
               ) : null}
-              <div className="flex justify-between gap-3">
-                <span className="text-slate-500">Tax</span>
-                <span>
-                  {formatINR(invoice.cgstTotal + invoice.sgstTotal)}
-                </span>
-              </div>
+              {invoice.invoiceType === 'gst_tax_invoice' ? (
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">GST</span>
+                  <span>
+                    {formatINR(invoice.cgstTotal + invoice.sgstTotal)}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">GST</span>
+                  <span className="text-slate-400">Not charged</span>
+                </div>
+              )}
               <div className="flex justify-between gap-3 border-t border-slate-200 pt-2 text-base font-bold">
                 <span>Total</span>
                 <span>{formatINR(invoice.grandTotal)}</span>

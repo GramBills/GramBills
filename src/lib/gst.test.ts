@@ -48,6 +48,59 @@ describe('GST calculations', () => {
     expect(line.totalAmount).toBe(106.2);
   });
 
+  it('does not add GST on a kachha (non-GST) bill', () => {
+    const line = calculateLineTotals(
+      {
+        quantity: 1,
+        unitPrice: 100,
+        gstRate: 18,
+        taxInclusive: false,
+      },
+      0,
+      'non_gst_estimate',
+    );
+
+    expect(line.taxAmount).toBe(0);
+    expect(line.totalAmount).toBe(100);
+
+    const result = calculateInvoice(
+      [
+        {
+          quantity: 2,
+          unitPrice: 100,
+          gstRate: 18,
+          taxInclusive: false,
+        },
+      ],
+      0,
+      'non_gst_estimate',
+    );
+
+    expect(result.totals.taxAmount).toBe(0);
+    expect(result.totals.cgstTotal).toBe(0);
+    expect(result.totals.sgstTotal).toBe(0);
+    expect(result.totals.grandTotal).toBe(200);
+  });
+
+  it('keeps inclusive GST inside the price on a pakka bill', () => {
+    const result = calculateInvoice(
+      [
+        {
+          quantity: 1,
+          unitPrice: 118,
+          gstRate: 18,
+          taxInclusive: true,
+        },
+      ],
+      0,
+      'gst_tax_invoice',
+    );
+
+    expect(result.totals.taxAmount).toBe(18);
+    expect(result.totals.taxableAmount).toBe(100);
+    expect(result.totals.grandTotal).toBe(118);
+  });
+
   it('allocates extra discount across lines by value', () => {
     const allocations = allocateProportionally(40, [100, 300]);
     expect(allocations).toEqual([10, 30]);

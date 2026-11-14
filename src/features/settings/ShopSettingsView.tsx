@@ -284,7 +284,7 @@ export function ShopSettingsView({ settings }: ShopSettingsViewProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PageHeader
-        eyebrow="Phase 1"
+        eyebrow="Setup"
         title={t('settings.title')}
         description={t('settings.subtitle')}
         actions={

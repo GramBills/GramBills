@@ -65,8 +65,10 @@ export function buildReceiptMessage(
       )}`,
     );
   }
+  if (invoice.invoiceType === 'gst_tax_invoice') {
+    lines.push(`GST: ${formatINR(invoice.cgstTotal + invoice.sgstTotal)}`);
+  }
   lines.push(
-    `Tax: ${formatINR(invoice.cgstTotal + invoice.sgstTotal)}`,
     `Total: ${formatINR(invoice.grandTotal)}`,
     `Paid: ${paymentSummary(invoice)}`,
   );

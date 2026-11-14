@@ -204,7 +204,7 @@ export function KhataLedgerView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="Phase 4"
+        eyebrow="Udhaar & collections"
         title="Customer Udhaar (Khata)"
         description="Track village-wise credit, collect payments, reconcile every balance, and send one-click WhatsApp reminders."
       />

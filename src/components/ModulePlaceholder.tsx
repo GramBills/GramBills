@@ -19,7 +19,7 @@ export function ModulePlaceholder({
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Phase 1 foundation"
+        eyebrow="Coming soon"
         title={title}
         description={description}
         actions={<Badge variant="info">{phase}</Badge>}

@@ -76,6 +76,7 @@ export interface InvoiceItem {
   mrp: number;
   unitPrice: number;
   discountAmount: number;
+  discountPercent?: number;
   gstRate: GstRate;
   taxAmount: number;
   lineTotal: number;

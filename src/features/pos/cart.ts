@@ -1,5 +1,6 @@
 import { calculateInvoice } from '../../lib/gst';
 import type { GstInvoiceTotals, GstLineTotals } from '../../lib/gst';
+import { round2 } from '../../lib/money';
 import type {
   CheckoutCustomerInput,
   CheckoutLineInput,
@@ -30,6 +31,7 @@ export interface CartLine {
   stockQty: number;
   quantity: number;
   discountAmount: number;
+  discountPercent: number;
   serialOrImeiNumbers: string[];
   warrantyMonths: number;
 }
@@ -65,6 +67,7 @@ export function cartLineFromProduct(product: Product): CartLine {
     stockQty: product.stockQty,
     quantity: 1,
     discountAmount: 0,
+    discountPercent: 0,
     serialOrImeiNumbers: [],
     warrantyMonths: product.defaultWarrantyMonths,
   };
@@ -76,26 +79,35 @@ export function toCheckoutLine(line: CartLine): CheckoutLineInput {
     quantity: line.quantity,
     unitPrice: line.unitPrice,
     discountAmount: line.discountAmount,
+    discountPercent: line.discountPercent,
     serialOrImeiNumbers: line.serialOrImeiNumbers,
     warrantyMonths: line.warrantyMonths,
   };
 }
 
-export function calculateCartLine(line: CartLine): GstLineTotals {
-  return calculateInvoice([
-    {
-      quantity: line.quantity,
-      unitPrice: line.unitPrice,
-      discountAmount: line.discountAmount,
-      gstRate: line.gstRate,
-      taxInclusive: line.taxInclusive,
-    },
-  ]).lines[0];
+export function calculateCartLine(
+  line: CartLine,
+  invoiceType: InvoiceType = 'gst_tax_invoice',
+): GstLineTotals {
+  return calculateInvoice(
+    [
+      {
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        discountAmount: line.discountAmount,
+        gstRate: line.gstRate,
+        taxInclusive: line.taxInclusive,
+      },
+    ],
+    0,
+    invoiceType,
+  ).lines[0];
 }
 
 export function calculateCart(
   lines: CartLine[],
   extraBillDiscount = 0,
+  invoiceType: InvoiceType = 'gst_tax_invoice',
 ): GstInvoiceTotals {
   return calculateInvoice(
     lines.map((line) => ({
@@ -106,7 +118,20 @@ export function calculateCart(
       taxInclusive: line.taxInclusive,
     })),
     extraBillDiscount,
+    invoiceType,
   ).totals;
+}
+
+export function withPercentDiscount(
+  line: CartLine,
+  percent: number,
+): CartLine {
+  const discountPercent = Math.min(100, Math.max(0, round2(percent)));
+  const grossAmount = round2(line.quantity * line.unitPrice);
+  const discountAmount = round2(
+    Math.min(grossAmount, (grossAmount * discountPercent) / 100),
+  );
+  return { ...line, discountPercent, discountAmount };
 }
 
 export function isBelowFloorPrice(line: CartLine): boolean {
@@ -141,7 +166,24 @@ export function loadHoldSlots(): HoldSlots {
         Array.isArray(value.items) &&
         typeof value.updatedAt === 'string'
       ) {
-        slots[index] = value;
+        slots[index] = {
+          ...value,
+          items: value.items.map((item) =>
+            typeof item.discountPercent === 'number'
+              ? item
+              : {
+                  ...item,
+                  discountPercent:
+                    item.quantity * item.unitPrice > 0
+                      ? round2(
+                          (item.discountAmount /
+                            (item.quantity * item.unitPrice)) *
+                            100,
+                        )
+                      : 0,
+                },
+          ),
+        };
       }
     }
   } catch {

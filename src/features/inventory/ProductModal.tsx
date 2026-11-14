@@ -391,17 +391,22 @@ export function ProductModal({
                 ))}
               </Select>
             </Field>
-            <label className="flex items-center gap-2 self-end rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 sm:col-span-1">
-              <input
-                type="checkbox"
-                checked={form.taxInclusive}
-                onChange={(event) =>
-                  updateField('taxInclusive', event.target.checked)
-                }
-                className="h-4 w-4 rounded border-slate-300 accent-emerald-700"
-              />
-              Price includes GST
-            </label>
+            <div className="self-end rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 sm:col-span-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.taxInclusive}
+                  onChange={(event) =>
+                    updateField('taxInclusive', event.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-slate-300 accent-emerald-700"
+                />
+                Price includes GST (MRP)
+              </label>
+              <p className="mt-1 pl-6 text-[11px] leading-4 text-slate-500">
+                Uncheck to add {form.gstRate}% GST on top of the selling price.
+              </p>
+            </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Margin at selling price

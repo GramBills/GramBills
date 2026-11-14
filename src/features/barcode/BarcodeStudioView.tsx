@@ -269,7 +269,7 @@ export function BarcodeStudioView() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Phase 2"
+        eyebrow="Labels & printing"
         title="Free Barcode & Label Studio"
         description="Generate CODE128 barcodes for local items, customize sticker labels and print on A4 sheets or thermal rolls."
         actions={

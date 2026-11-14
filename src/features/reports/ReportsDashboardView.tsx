@@ -138,7 +138,7 @@ export function ReportsDashboardView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="Phase 4"
+        eyebrow="Daily closing"
         title="Reports & Daily Closing"
         description="See galla cash, UPI/bank collections, udhaar movement, net profit and a ready low-stock reorder list. Completed bills only; cancelled and returned bills are excluded from sales."
       />

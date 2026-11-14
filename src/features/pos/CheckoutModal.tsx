@@ -101,6 +101,19 @@ export function CheckoutModal({
     () => lines.filter(isBelowFloorPrice),
     [lines],
   );
+  const gstPricing = useMemo(() => {
+    if (invoiceType !== 'gst_tax_invoice' || lines.length === 0) {
+      return 'none';
+    }
+    const inclusive = lines.filter((line) => line.taxInclusive).length;
+    if (inclusive === lines.length) {
+      return 'included';
+    }
+    if (inclusive === 0) {
+      return 'added';
+    }
+    return 'mixed';
+  }, [lines, invoiceType]);
 
   useEffect(() => {
     if (!open) {
@@ -542,12 +555,27 @@ export function CheckoutModal({
                     </dd>
                   </div>
                 ) : null}
-                <div className="flex justify-between gap-2">
-                  <dt className="text-slate-500">Tax</dt>
-                  <dd className="font-medium text-slate-800">
-                    {formatINR(totals.taxAmount)}
-                  </dd>
-                </div>
+                {invoiceType === 'gst_tax_invoice' ? (
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-slate-500">
+                      {gstPricing === 'included'
+                        ? 'GST (included)'
+                        : gstPricing === 'added'
+                          ? 'GST (added)'
+                          : 'GST'}
+                    </dt>
+                    <dd className="font-medium text-slate-800">
+                      {formatINR(totals.taxAmount)}
+                    </dd>
+                  </div>
+                ) : (
+                  <div className="flex justify-between gap-2">
+                    <dt className="text-slate-500">GST</dt>
+                    <dd className="font-medium text-slate-400">
+                      Not charged
+                    </dd>
+                  </div>
+                )}
                 {totals.roundOff !== 0 ? (
                   <div className="flex justify-between gap-2">
                     <dt className="text-slate-500">Round off</dt>
@@ -563,6 +591,16 @@ export function CheckoutModal({
                   </dd>
                 </div>
               </dl>
+
+              {invoiceType === 'gst_tax_invoice' && lines.length > 0 ? (
+                <p className="text-[11px] leading-4 text-slate-500">
+                  {gstPricing === 'included'
+                    ? 'Selling prices include GST. The tax is shown on the invoice; the total stays the same.'
+                    : gstPricing === 'added'
+                      ? 'GST is added on top of the selling prices.'
+                      : 'Some prices include GST and some add it; totals follow each product setting.'}
+                </p>
+              ) : null}
 
               <div className="space-y-1 border-t border-slate-200 pt-3 text-xs text-slate-500">
                 <p>Paid: {formatINR(paidTotal)}</p>
