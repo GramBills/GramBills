@@ -1,0 +1,4 @@
+Start opencode from /Users/dilavarsingh/Desktop/GramBills — it should auto-read AGENTS.md. If it doesn’t, tell it: Read AGENTS.md first before doing anything.
+Then paste this starter prompt:
+Read AGENTS.md first. Then run git status, npm run typecheck, npm run test, and npm run lint to confirm the current state. Continue from the pending work: finish the interrupted khata payment smoke test, update README.md and docs/PLAN.md for Phase 4, then run the full typecheck/test/lint/build. Do not commit unless I explicitly ask.
+Start the dev server separately with npm run dev when you need browser testing.

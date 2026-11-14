@@ -70,6 +70,7 @@ export interface InvoiceItem {
   productName: string;
   barcode: string;
   hsnCode?: string;
+  costPrice?: number;
   quantity: number;
   unit: Unit;
   mrp: number;
@@ -115,9 +116,14 @@ export interface Invoice extends BaseEntity {
   upiReferenceNote: string;
   notes: string;
   status: InvoiceStatus;
+  statusReason?: string;
+  reversedAt?: string;
 }
 
-export type KhataTransactionType = 'credit_given' | 'payment_received';
+export type KhataTransactionType =
+  | 'credit_given'
+  | 'payment_received'
+  | 'credit_reversed';
 export type KhataPaymentMode = 'cash' | 'upi' | 'none';
 
 export interface KhataTransaction extends BaseEntity {
