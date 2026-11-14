@@ -12,7 +12,9 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 > reminders, cash/UPI payment collection, bill search by number/phone/name/
 > product/barcode/serial, live warranty status, full-invoice cancel/return, and
 > daily sales/profit reports with galla closing, top products, and a low-stock
-> reorder list. Phase 5 (PWA offline app shell and polish) is next.
+> reorder list. Phase 5 is underway: the offline service worker/app shell is
+> implemented, so the app reloads and bills with the network disabled after the
+> first load.
 
 ## What works today
 
@@ -36,7 +38,8 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 | Bill search and invoice detail with live warranty status | Working |
 | Full-invoice cancel/return with stock and udhaar reversal | Working |
 | Daily sales/profit reports, galla closing, and low-stock reorder | Working |
-| Installable PWA / offline service worker | Phase 5 |
+| Offline app shell / service worker (reload and bill with no network) | Working |
+| Installable PWA manifest | Working |
 
 ## Tech stack
 
@@ -44,6 +47,7 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 - **Icons:** `lucide-react`
 - **Storage:** Dexie 4 over IndexedDB
 - **Barcode/QR:** `jsbarcode`, `qrcode`, `html5-qrcode`
+- **PWA:** `vite-plugin-pwa` (Workbox service worker after `npm run build`)
 - **Testing:** Vitest, React Testing Library, `fake-indexeddb`
 - **Backend:** none in V1; fully static and local-first
 - **Deployment:** static hosting or local laptop only
@@ -79,6 +83,17 @@ npm run preview
 ```
 
 The production files are written to `dist/`.
+
+### Offline app shell
+
+`npm run build` also generates `dist/sw.js` via `vite-plugin-pwa`/Workbox. The
+service worker precaches the built HTML, JS, CSS, manifest, and icons. After one
+online load, the app can be reloaded and used with the network disabled,
+including creating bills (all business data stays in IndexedDB).
+
+The service worker is disabled during `npm run dev` to avoid caching stale
+development assets. To test offline behavior, use `npm run build` followed by
+`npm run preview`, then switch the browser offline and reload.
 
 ## Available scripts
 
@@ -150,7 +165,7 @@ path.
 | **Phase 2** | Inventory and barcode studio: product CRUD, stock adjustments, search, labels |
 | **Phase 3** | Billing counter: scanner input, cart, payments, invoices, thermal/A4 printing — **complete** |
 | **Phase 4** | Khata ledger, payment collection, warranty/serial lookup, full-invoice cancel/return, daily sales and profit reports — **complete** |
-| **Phase 5** | PWA polish: service worker, offline install, print tuning, performance — **next** |
+| **Phase 5** | PWA polish: service worker/offline app shell — **complete**; offline install, print tuning, and performance polish pending |
 
 See [docs/PLAN.md](./docs/PLAN.md) for the detailed architecture and acceptance
 criteria. See
@@ -177,6 +192,10 @@ validation/restore, GST/discount allocation, invoice checkout and stock
 updates, full-invoice reversal, udhaar khata entries, khata balance and payment
 validation, report ranges/summaries, warranty status, and WhatsApp receipt and
 reminder text.
+
+Browser smoke coverage additionally verifies the production service worker:
+precached app shell, page controlled by the worker, offline reload, and a cash
+bill created with the network disabled.
 
 ## Known limitations
 

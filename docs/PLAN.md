@@ -78,6 +78,12 @@ and rural/semi-urban retail stores.
   UI never participates in print output.
 - **UPI QR** encodes the exact NPCI UPI Linking URI. It is a payment request;
   the app does not claim automatic payment confirmation.
+- **Offline app shell:** `vite-plugin-pwa` uses Workbox `generateSW` to precache
+  the built HTML, JS, CSS, manifest, and icons. Navigations fall back to
+  `/index.html`; outdated precaches are cleaned up; the worker skip-waits and
+  claims clients. The service worker is disabled in `npm run dev` so local
+  development never serves stale assets. The static `public/manifest.webmanifest`
+  is reused (plugin manifest generation is off).
 
 ## 4. Data Model
 
@@ -253,15 +259,21 @@ Acceptance:
 
 ### Phase 5 - PWA & Polish
 
-**Status:** Next.
+**Status:** In progress. The offline app shell/service worker is implemented and
+verified: `vite-plugin-pwa`/Workbox precaches the production build, the page is
+worker-controlled, and Chrome smoke testing reloaded the app and created a cash
+bill with the network disabled. Manifest installability reported no errors.
+
+Remaining: print CSS audit on real hardware, keyboard audit, empty/error/loading
+state review, seed reset, and data volume test.
 
 Service worker caching, install manifest, print CSS audit, keyboard audit,
 empty/error/loading states, seed reset, and data volume test.
 
 Acceptance:
 
-- App reloads and bills with network disabled after first load.
-- No console errors.
+- App reloads and bills with network disabled after first load. — **verified**
+- No console errors. — **verified** during the offline smoke test
 - Print isolates only the correct sheet.
 
 ## 7. Verification Strategy
@@ -283,7 +295,7 @@ Acceptance:
   - 58mm and 80mm thermal print.
   - A4 invoice.
   - 65-up and 40-up sticker sheets with skip offset.
-  - Offline reload.
+  - Offline reload and offline cash bill against `npm run build` + `npm run preview`.
   - Backup restore on a clean database.
 - Load test with seed data plus a generated dataset of 5k products and 2k
   invoices.
