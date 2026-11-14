@@ -85,6 +85,7 @@ Seeded customers:
 - `src/components/PrintSheets.tsx`: A4/A5 invoice and label print layouts.
 - `src/components/ui/primitives.tsx`: shared UI primitives (`Modal`, `Button`, `Input`, `Select`, `Textarea`, `Field`, `Badge`, `Card`, `PageHeader`, `StatCard`, `Toast`).
 - `src/index.css`: print isolation and print-color CSS.
+- `vite.config.ts`: Vite + React + Tailwind + `vite-plugin-pwa` (Workbox `generateSW`, auto-update, precache of HTML/JS/CSS/manifest/icons, `/index.html` navigation fallback). Plugin manifest generation is disabled; `public/manifest.webmanifest` is the static manifest.
 - `src/features/pos/`: POS counter, checkout, receipt modal, UPI QR.
 - `src/features/inventory/`: inventory and CSV import.
 - `src/features/barcode/`: barcode label studio.
@@ -129,6 +130,19 @@ Phase 4 UI includes:
 - Bill search by invoice number, phone, name, product, barcode, serial/IMEI.
 - Invoice detail modal with warranty badges, A4/thermal reprint, WhatsApp, cancel/return confirmation and reason.
 - Report range controls (today/yesterday/week/month/custom), collection/profit stat cards, galla closing, top products, low-stock reorder list, reorder CSV download.
+
+### Phase 5 — In progress
+
+Done:
+- Added `vite-plugin-pwa@^2.0.0` dev dependency (Workbox `generateSW`).
+- `npm run build` emits `dist/sw.js`, `dist/workbox-*.js`, and `dist/registerSW.js`.
+- Precaches `index.html`, hashed JS/CSS, `manifest.webmanifest`, `icon.svg`, and `registerSW.js`.
+- Service worker disabled in dev; test with `npm run build` + `npm run preview`.
+- Chrome smoke verification: page worker-controlled, offline reload renders, cash bill `INV-2026-0001` created offline, invoice persisted (`grandTotal=110`, `status=completed`), no console errors.
+- Chrome installability check (`Page.getInstallabilityErrors`) returned `[]` with the existing SVG manifest icon.
+
+Pending: print CSS audit on real hardware, keyboard audit, empty/error/loading
+state review, seed reset, data volume test, code splitting.
 
 ## Phase 4 Semantics
 
@@ -195,16 +209,18 @@ Chrome smoke tests completed this session:
 - Fixed report Galla-closing subtitle duplicate range text.
 - Fixed returned/cancelled warranty counting issue.
 - Khata payment smoke test completed (headless Chrome via CDP, fresh profile): opened `#/khata`, selected Imran Khan, recorded a ₹500 UPI payment. Verified outstanding ₹2,200 → ₹1,700, `Collected today` ₹500, passbook showed `UPI payment received` `-₹500.00` and `Bal ₹1,700.00`, Toast showed new balance, and IndexedDB had exactly one `payment_received` entry with `amount=500`, `paymentMode=upi`, `balanceAfter=1700`. Script: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/cdp-khata-smoke.mjs`.
+- PWA offline smoke test completed against `npm run preview` (port 4173, headless Chrome on CDP 9225): service worker active and controlling the page, precache contained index/JS/CSS/manifest/icon, `navigator.onLine=false` after CDP offline emulation, page reloaded offline, and a cash bill was completed with `INV-2026-0001` persisted in IndexedDB (`grandTotal=110`, `status=completed`). No console errors. Script: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/cdp-pwa-offline.mjs`.
 
 ## Pending Work
 
 1. Phase 4 docs updated: `README.md` and `docs/PLAN.md` now mark Phase 4 complete. `docs/SHOP_SETUP_GUIDE.md` was not changed.
 2. Optionally test invoice search by actual serial/IMEI by creating a serialized-product bill.
-3. Consider Phase 5 work:
-   - Service worker/offline app shell.
+3. Finish Phase 5 polish:
+   - Print CSS audit on the shop's real printer.
+   - Keyboard and empty/error/loading state review.
    - Deeper backup/restore verification.
    - Hinglish translation coverage (inventory screens are still English-only).
-   - Code splitting to reduce bundle warning.
+   - Code splitting to reduce bundle warning (~922 kB main chunk).
 4. Physical A4/thermal printer output and webcam camera capture still need real-device verification.
 
 ## Environment / Testing Notes
@@ -219,6 +235,7 @@ Chrome smoke tests completed this session:
 - Headless Chrome launch used for smoke tests (Node v26 has global `WebSocket`):
   `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --remote-debugging-port=9224 --user-data-dir=<temp profile> --no-first-run --no-default-browser-check about:blank`
 - Dev server binds IPv6 `[::1]:5173`, so use `http://localhost:5173` (not `127.0.0.1`) when testing.
+- Production preview binds `http://localhost:4173`; service worker tests must use it (SW is disabled in dev).
 - Dev server log: `/var/folders/wy/7x14s1gx0l52_4dg_f_y51sw0000gn/T/opencode/grambill-dev.log`
 - `dist/` is untracked, ignored, and still on disk.
 
@@ -227,7 +244,7 @@ Chrome smoke tests completed this session:
 Do not commit unless the user explicitly asks.
 
 Current uncommitted work includes:
-- Modified: `src/db/database.ts`, `src/db/seed.ts`, `src/features/invoices/InvoicesWarrantyView.tsx`, `src/features/khata/KhataLedgerView.tsx`, `src/features/reports/ReportsDashboardView.tsx`, `src/lib/whatsapp.test.ts`, `src/lib/whatsapp.ts`, `src/services/invoices.test.ts`, `src/services/invoices.ts`, `src/types/pos.ts`, `README.md`, `docs/PLAN.md`
+- Modified: `src/db/database.ts`, `src/db/seed.ts`, `src/features/invoices/InvoicesWarrantyView.tsx`, `src/features/khata/KhataLedgerView.tsx`, `src/features/reports/ReportsDashboardView.tsx`, `src/lib/whatsapp.test.ts`, `src/lib/whatsapp.ts`, `src/services/invoices.test.ts`, `src/services/invoices.ts`, `src/types/pos.ts`, `README.md`, `docs/PLAN.md`, `vite.config.ts`, `package.json`, `package-lock.json`
 - New: `src/features/invoices/InvoiceDetailModal.tsx`, `src/features/khata/RecordPaymentModal.tsx`, `src/lib/reports.test.ts`, `src/lib/reports.ts`, `src/lib/warranty.test.ts`, `src/lib/warranty.ts`, `src/services/khata.test.ts`, `src/services/khata.ts`
 - Also new: this `AGENTS.md` memory file.
 
@@ -237,5 +254,5 @@ Current uncommitted work includes:
 2. Run `git status` and inspect the working tree.
 3. Run `npm run typecheck && npm run test && npm run lint` to confirm current state.
 4. Phase 4 is complete and documented; khata payment smoke test passed.
-5. Run `npm run build` before starting new work.
-6. Start Phase 5 (service worker/offline app shell) or another feature.
+5. Phase 5 offline app shell is implemented and verified; finish the remaining Phase 5 polish.
+6. Run `npm run build` before starting new work.
