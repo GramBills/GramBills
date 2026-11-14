@@ -9,6 +9,7 @@ import type {
   Customer,
   Invoice,
   InvoiceItem,
+  InvoiceStatus,
   InvoiceType,
   KhataTransaction,
   PaymentMode,
@@ -114,6 +115,26 @@ function makeStockMovement(
     productId,
     changeType: 'sale_out',
     qtyChange: -quantity,
+    referenceId: invoiceId,
+  };
+}
+
+function makeReturnMovement(
+  productId: string,
+  quantity: number,
+  invoiceId: string,
+  now: string,
+): StockMovement {
+  return {
+    id: newId(),
+    shopId: LOCAL_SHOP_ID,
+    deviceId: LOCAL_DEVICE_ID,
+    createdAt: now,
+    updatedAt: now,
+    syncStatus: 'pending',
+    productId,
+    changeType: 'return_in',
+    qtyChange: quantity,
     referenceId: invoiceId,
   };
 }
@@ -312,6 +333,7 @@ export async function createInvoice(
           productName: product.name,
           barcode: product.barcode,
           hsnCode: product.hsnCode,
+          costPrice: product.purchasePrice,
           quantity,
           unit: product.unit,
           mrp: product.mrp,
@@ -431,6 +453,162 @@ export async function createInvoice(
       }
 
       return { invoice, customer };
+    },
+  );
+}
+
+
+export function invoiceMatchesSearch(invoice: Invoice, query: string): boolean {
+  const term = query.trim().toLowerCase();
+  if (term === '') {
+    return true;
+  }
+  const fields = [
+    invoice.invoiceNumber,
+    invoice.customerName,
+    invoice.customerPhone,
+    invoice.customerVillage,
+    invoice.customerGstin ?? '',
+    invoice.status,
+    invoice.paymentMode,
+    ...invoice.items.flatMap((item) => [
+      item.productName,
+      item.barcode,
+      item.hsnCode ?? '',
+      ...item.serialOrImeiNumbers,
+    ]),
+  ];
+  return fields.join(' ').toLowerCase().includes(term);
+}
+
+export async function searchInvoices(
+  query: string,
+  limit = 100,
+): Promise<Invoice[]> {
+  const invoices = await db.invoices.toArray();
+  return invoices
+    .filter((invoice) => invoiceMatchesSearch(invoice, query))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, limit);
+}
+
+export async function getInvoiceById(
+  id: string,
+): Promise<Invoice | undefined> {
+  return db.invoices.get(id);
+}
+
+export type InvoiceReverseMode = Extract<
+  InvoiceStatus,
+  'cancelled' | 'returned'
+>;
+
+export interface ReverseInvoiceInput {
+  invoiceId: string;
+  mode: InvoiceReverseMode;
+  reason?: string;
+}
+
+export interface ReverseInvoiceResult {
+  invoice: Invoice;
+  customer: Customer | null;
+}
+
+export async function reverseInvoice(
+  input: ReverseInvoiceInput,
+): Promise<ReverseInvoiceResult> {
+  return db.transaction(
+    'rw',
+    [
+      db.invoices,
+      db.products,
+      db.customers,
+      db.khataTransactions,
+      db.stockMovements,
+    ],
+    async () => {
+      const invoice = await db.invoices.get(input.invoiceId);
+      if (!invoice) {
+        throw new Error('Invoice was not found.');
+      }
+      if (invoice.status !== 'completed') {
+        throw new Error('This bill has already been cancelled or returned.');
+      }
+
+      const now = nowIso();
+      const returnedByProduct = new Map<string, number>();
+      for (const item of invoice.items) {
+        returnedByProduct.set(
+          item.productId,
+          round2((returnedByProduct.get(item.productId) ?? 0) + item.quantity),
+        );
+      }
+
+      for (const [productId, quantity] of returnedByProduct) {
+        const product = await db.products.get(productId);
+        if (!product) {
+          continue;
+        }
+        await db.products.update(productId, {
+          stockQty: round2(product.stockQty + quantity),
+          updatedAt: now,
+          syncStatus: 'pending',
+        });
+        await db.stockMovements.add(
+          makeReturnMovement(productId, quantity, invoice.id, now),
+        );
+      }
+
+      let customer: Customer | null = invoice.customerId
+        ? ((await db.customers.get(invoice.customerId)) ?? null)
+        : null;
+      if (customer) {
+        const nextBalance = round2(
+          customer.currentUdhaarBalance - invoice.udhaarAmount,
+        );
+        const updatedCustomer: Customer = {
+          ...customer,
+          currentUdhaarBalance: nextBalance,
+          totalPurchases: round2(
+            Math.max(0, customer.totalPurchases - invoice.grandTotal),
+          ),
+          updatedAt: now,
+          syncStatus: 'pending',
+        };
+        await db.customers.put(updatedCustomer);
+        customer = updatedCustomer;
+
+        if (invoice.udhaarAmount > 0) {
+          await db.khataTransactions.add({
+            id: newId(),
+            shopId: LOCAL_SHOP_ID,
+            deviceId: LOCAL_DEVICE_ID,
+            createdAt: now,
+            updatedAt: now,
+            syncStatus: 'pending',
+            customerId: customer.id,
+            invoiceId: invoice.id,
+            type: 'credit_reversed',
+            amount: invoice.udhaarAmount,
+            paymentMode: 'none',
+            balanceAfter: nextBalance,
+            remarks: `${input.mode === 'cancelled' ? 'Cancelled' : 'Returned'} invoice ${invoice.invoiceNumber}${
+              input.reason?.trim() ? ` · ${input.reason.trim()}` : ''
+            }`,
+          });
+        }
+      }
+
+      const updatedInvoice: Invoice = {
+        ...invoice,
+        status: input.mode,
+        statusReason: input.reason?.trim() ?? '',
+        reversedAt: now,
+        updatedAt: now,
+        syncStatus: 'pending',
+      };
+      await db.invoices.put(updatedInvoice);
+      return { invoice: updatedInvoice, customer };
     },
   );
 }

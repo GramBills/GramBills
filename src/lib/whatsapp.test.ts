@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Invoice, ShopSettings } from '../types/pos';
 import {
+  buildKhataReminderMessage,
   buildReceiptMessage,
   buildWhatsAppUrl,
   normalizeWhatsAppPhone,
@@ -108,5 +109,19 @@ describe('WhatsApp receipt', () => {
       'https://wa.me/919876543210?text=Hello%20%26%20welcome',
     );
     expect(buildWhatsAppUrl('', 'Hello')).toBe('');
+  });
+
+  it('builds a Hinglish khata reminder', () => {
+    const settings = {
+      shopName: 'Shree Electronics & Electricals',
+      phone: '9876500000',
+    } as Parameters<typeof buildKhataReminderMessage>[1];
+    const message = buildKhataReminderMessage(
+      { name: 'Ramesh Patel', currentUdhaarBalance: 1250 },
+      settings,
+    );
+    expect(message).toContain('Namaste Ramesh Patel ji');
+    expect(message).toContain('₹1,250.00');
+    expect(message).toContain('Shop phone: 9876500000');
   });
 });

@@ -4,7 +4,13 @@ import { db } from '../db/database';
 import { seedInitialData } from '../db/seed';
 import { calculateInvoice } from '../lib/gst';
 import type { Customer, Product } from '../types/pos';
-import { createInvoice, type CheckoutLineInput } from './invoices';
+import {
+  createInvoice,
+  invoiceMatchesSearch,
+  reverseInvoice,
+  searchInvoices,
+  type CheckoutLineInput,
+} from './invoices';
 
 async function productBySku(skuCode: string): Promise<Product> {
   const product = await db.products.where('skuCode').equals(skuCode).first();
@@ -279,5 +285,114 @@ describe('invoice checkout', () => {
 
     const storedProduct = await db.products.get(product.id);
     expect(storedProduct?.stockQty).toBe(product.stockQty - 3);
+  });
+
+  it('cancels an invoice, restores stock and reverses udhaar once', async () => {
+    const product = await productBySku('ELEC-1002');
+    const customer = await customerByPhone('9876543210');
+    const items = [line(product, { quantity: 2 })];
+    const total = grandTotal(product, items);
+
+    const result = await createInvoice({
+      invoiceType: 'gst_tax_invoice',
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        villageOrArea: customer.villageOrArea,
+      },
+      items,
+      extraBillDiscount: 0,
+      payment: {
+        mode: 'udhaar',
+        cashPaid: 0,
+        upiPaid: 0,
+        cardPaid: 0,
+        udhaarAmount: total,
+        upiReferenceNote: '',
+        notes: '',
+      },
+    });
+
+    const afterSale = await db.customers.get(customer.id);
+    expect(afterSale?.currentUdhaarBalance).toBe(
+      customer.currentUdhaarBalance + total,
+    );
+
+    const reversed = await reverseInvoice({
+      invoiceId: result.invoice.id,
+      mode: 'cancelled',
+      reason: 'Customer changed mind',
+    });
+
+    expect(reversed.invoice.status).toBe('cancelled');
+    expect(reversed.invoice.statusReason).toBe('Customer changed mind');
+    expect(reversed.customer?.currentUdhaarBalance).toBe(
+      customer.currentUdhaarBalance,
+    );
+
+    const storedProduct = await db.products.get(product.id);
+    expect(storedProduct?.stockQty).toBe(product.stockQty);
+
+    const returnMovement = await db.stockMovements
+      .where('referenceId')
+      .equals(result.invoice.id)
+      .filter((movement) => movement.changeType === 'return_in')
+      .first();
+    expect(returnMovement?.qtyChange).toBe(2);
+
+    const reversalEntries = await db.khataTransactions
+      .where('invoiceId')
+      .equals(result.invoice.id)
+      .filter((transaction) => transaction.type === 'credit_reversed')
+      .toArray();
+    expect(reversalEntries).toHaveLength(1);
+    expect(reversalEntries[0]?.amount).toBe(total);
+
+    await expect(
+      reverseInvoice({ invoiceId: result.invoice.id, mode: 'returned' }),
+    ).rejects.toThrow('already been cancelled or returned');
+  });
+
+  it('searches invoices by number, phone and serial/IMEI', async () => {
+    const product = await productBySku('ELEC-1006');
+    const customer = await customerByPhone('9876543211');
+    const items = [
+      line(product, { serialOrImeiNumbers: ['IMEI-99887766'] }),
+    ];
+    const total = grandTotal(product, items);
+
+    const result = await createInvoice({
+      invoiceType: 'non_gst_estimate',
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        villageOrArea: customer.villageOrArea,
+      },
+      items,
+      extraBillDiscount: 0,
+      payment: {
+        mode: 'cash',
+        cashPaid: total,
+        upiPaid: 0,
+        cardPaid: 0,
+        udhaarAmount: 0,
+        upiReferenceNote: '',
+        notes: '',
+      },
+    });
+
+    expect(invoiceMatchesSearch(result.invoice, 'IMEI-99887766')).toBe(true);
+    expect(invoiceMatchesSearch(result.invoice, '9876543211')).toBe(true);
+    expect(
+      invoiceMatchesSearch(result.invoice, result.invoice.invoiceNumber),
+    ).toBe(true);
+
+    const bySerial = await searchInvoices('IMEI-99887766');
+    expect(bySerial.map((invoice) => invoice.id)).toContain(result.invoice.id);
+
+    const byPhone = await searchInvoices('9876543211');
+    expect(byPhone.map((invoice) => invoice.id)).toContain(result.invoice.id);
   });
 });

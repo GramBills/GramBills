@@ -1,4 +1,4 @@
-import type { Invoice, ShopSettings } from '../types/pos';
+import type { Customer, Invoice, ShopSettings } from '../types/pos';
 import { formatDate } from './date';
 import { formatINR } from './money';
 
@@ -81,6 +81,26 @@ export function buildReceiptMessage(
 
   lines.push('', 'Thank you for shopping with us.');
   return lines.join('\n');
+}
+
+export function buildKhataReminderMessage(
+  customer: Pick<Customer, 'name' | 'currentUdhaarBalance'>,
+  settings: ShopSettings,
+): string {
+  const name = customer.name.trim() || 'Customer';
+  if (customer.currentUdhaarBalance <= 0) {
+    return `Namaste ${name} ji,\nAapka ${settings.shopName} par koi udhaar baaki nahi hai. Dhanyavaad.`;
+  }
+  return [
+    `Namaste ${name} ji,`,
+    `${settings.shopName} se yaad dila rahe hain ki aapka udhaar ${formatINR(
+      customer.currentUdhaarBalance,
+    )} baaki hai.`,
+    'Kripya jaldi payment kar dein. Dhanyavaad.',
+    settings.phone ? `Shop phone: ${settings.phone}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 export function normalizeWhatsAppPhone(phone: string): string {

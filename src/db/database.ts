@@ -8,7 +8,9 @@ import type {
   StockMovement,
   SyncOutboxEntry,
 } from '../types/pos';
-import { DB_NAME } from './constants';
+import { nowIso } from '../lib/date';
+import { newId } from '../lib/id';
+import { DB_NAME, LOCAL_DEVICE_ID, LOCAL_SHOP_ID } from './constants';
 import { seedInitialData } from './seed';
 
 export class GramBillDB extends Dexie {
@@ -22,7 +24,7 @@ export class GramBillDB extends Dexie {
 
   constructor() {
     super(DB_NAME);
-    this.version(1).stores({
+    const schema = {
       shopSettings: '&id, shopId, updatedAt, syncStatus',
       products:
         '&id, shopId, &skuCode, barcode, name, nameLocal, category, brand, stockQty, updatedAt, syncStatus',
@@ -35,7 +37,48 @@ export class GramBillDB extends Dexie {
       stockMovements:
         '&id, shopId, productId, changeType, referenceId, createdAt, syncStatus',
       syncOutbox: '&id, shopId, status, entity, createdAt',
-    });
+    };
+
+    this.version(1).stores(schema);
+    this.version(2)
+      .stores(schema)
+      .upgrade(async (transaction) => {
+        const customers = (await transaction
+          .table('customers')
+          .toArray()) as Customer[];
+        const khataTable = transaction.table(
+          'khataTransactions',
+        ) as Table<KhataTransaction, string>;
+
+        for (const customer of customers) {
+          if (customer.currentUdhaarBalance <= 0) {
+            continue;
+          }
+          const existing = await khataTable
+            .where('customerId')
+            .equals(customer.id)
+            .count();
+          if (existing > 0) {
+            continue;
+          }
+          const now = nowIso();
+          await khataTable.add({
+            id: newId(),
+            shopId: LOCAL_SHOP_ID,
+            deviceId: LOCAL_DEVICE_ID,
+            createdAt: now,
+            updatedAt: now,
+            syncStatus: 'synced',
+            customerId: customer.id,
+            invoiceId: null,
+            type: 'credit_given',
+            amount: customer.currentUdhaarBalance,
+            paymentMode: 'none',
+            balanceAfter: customer.currentUdhaarBalance,
+            remarks: 'Opening balance',
+          });
+        }
+      });
   }
 }
 

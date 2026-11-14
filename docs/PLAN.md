@@ -118,10 +118,13 @@ src/db/database.ts              GramBillDB, schema versions, hooks
 src/db/seed.ts                  shop settings, 15 products, 4 customers
 src/db/backup.ts                export/import JSON, validate, restore
 src/db/reconcile.ts             stock/khata consistency checks
-src/services/invoices.ts        checkout transaction, cancel/return
+src/services/invoices.ts        checkout transaction, search, cancel/return
+src/services/khata.ts           khata balance, payment recording
 src/services/products.ts        CRUD, barcode generation, stock-in
 src/services/customers.ts       CRUD, udhaar payments
 src/lib/money.ts                round2, INR formatting, margin
+src/lib/reports.ts              report ranges and summary calculations
+src/lib/warranty.ts             warranty status helper
 src/lib/gst.ts                  taxable/tax/discount allocation
 src/lib/invoiceNumber.ts        prefix + sequence formatting
 src/lib/upi.ts                  NPCI URI + QR payload
@@ -148,7 +151,9 @@ src/features/inventory/StockInModal.tsx
 src/features/barcode/BarcodeStudioView.tsx
 src/features/barcode/BarcodeSvg.tsx
 src/features/khata/KhataLedgerView.tsx
+src/features/khata/RecordPaymentModal.tsx
 src/features/invoices/InvoicesWarrantyView.tsx
+src/features/invoices/InvoiceDetailModal.tsx
 src/features/reports/ReportsDashboardView.tsx
 src/features/settings/ShopSettingsView.tsx
 src/components/ModulePlaceholder.tsx
@@ -214,12 +219,30 @@ Acceptance:
 
 ### Phase 4 - Khata, Warranty, Reports (Prompt 4)
 
-**Status:** Next.
+**Status:** Complete. Automated checks pass (19 files, 87 tests) and Chrome
+smoke testing covered bill search, invoice detail/reversal, warranty status,
+report totals and ranges, low-stock reorder, and khata payment collection
+(₹500 UPI on Imran Khan: outstanding ₹2,200 → ₹1,700, collected today ₹500,
+passbook entry, no duplicate).
 
 Khata dashboard with village filter, passbook, payment recording, and WhatsApp
 reminder. Invoice/serial/phone search with live warranty status and
 cancel/return. Reports with cash, UPI, profit, top products, and low-stock
 reorder list.
+
+Semantics:
+
+- Only `completed` invoices can be cancelled/returned. Reversal restores stock
+  with `return_in` movements, reduces `currentUdhaarBalance` and
+  `totalPurchases`, adds a `credit_reversed` khata entry only when udhaar
+  existed, and rejects a second reversal.
+- Returned/cancelled bills show `Warranty closed` and are excluded from active
+  warranty counts and warranty value.
+- Reports include completed invoices only. Collections combine invoice
+  cash/UPI/card with khata cash/UPI payments. `netProfit = grandTotal -
+  cgstTotal - sgstTotal - totalCostPrice`. Suggested reorder qty is
+  `max(1, ceil(threshold * 2 - stockQty))`.
+- Cash/UPI refunds are manual; the app does not track refund cash flow.
 
 Acceptance:
 
@@ -229,6 +252,8 @@ Acceptance:
 - Report totals match invoices.
 
 ### Phase 5 - PWA & Polish
+
+**Status:** Next.
 
 Service worker caching, install manifest, print CSS audit, keyboard audit,
 empty/error/loading states, seed reset, and data volume test.

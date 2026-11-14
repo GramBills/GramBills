@@ -1,5 +1,6 @@
 import type {
   Customer,
+  KhataTransaction,
   Product,
   ShopSettings,
   StockMovement,
@@ -439,6 +440,7 @@ export async function seedInitialData(database: GramBillDB): Promise<void> {
     database.shopSettings,
     database.products,
     database.customers,
+    database.khataTransactions,
     database.stockMovements,
     async () => {
       const existingSettings = await database.shopSettings.count();
@@ -474,6 +476,23 @@ export async function seedInitialData(database: GramBillDB): Promise<void> {
       const customers = CUSTOMER_SEEDS.map((seed) =>
         createCustomer(seed, now),
       );
+      const khataTransactions: KhataTransaction[] = customers
+        .filter((customer) => customer.currentUdhaarBalance > 0)
+        .map((customer) => ({
+          id: newId(),
+          shopId: LOCAL_SHOP_ID,
+          deviceId: LOCAL_DEVICE_ID,
+          createdAt: now,
+          updatedAt: now,
+          syncStatus: 'synced',
+          customerId: customer.id,
+          invoiceId: null,
+          type: 'credit_given',
+          amount: customer.currentUdhaarBalance,
+          paymentMode: 'none',
+          balanceAfter: customer.currentUdhaarBalance,
+          remarks: 'Opening balance',
+        }));
       const stockMovements: StockMovement[] = products.map((product) => ({
         id: newId(),
         shopId: LOCAL_SHOP_ID,
@@ -490,6 +509,7 @@ export async function seedInitialData(database: GramBillDB): Promise<void> {
       await database.shopSettings.add(settings);
       await database.products.bulkAdd(products);
       await database.customers.bulkAdd(customers);
+      await database.khataTransactions.bulkAdd(khataTransactions);
       await database.stockMovements.bulkAdd(stockMovements);
     },
   );

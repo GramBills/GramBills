@@ -7,12 +7,12 @@ GramBill POS runs entirely on the shop laptop. No internet connection is
 required for billing, stock, customer balances, or reports. Data is stored in
 the browser's IndexedDB database and can be exported to a JSON backup file.
 
-> **Current status:** Phase 3 billing work is complete. The app now supports
-> product search and barcode scanning, a five-tab hold counter, serial/IMEI and
-> warranty capture, GST/Kachha bills, discounts, cash/UPI/card/split/udhaar
-> checkout, atomic invoice and stock updates, A4/thermal invoice printing, and
-> WhatsApp bill sharing. Khata ledger screens, warranty lookup, and reports are
-> planned for Phase 4.
+> **Current status:** Phase 4 is complete. On top of Phase 3 billing, the app now
+> has a customer khata ledger with village filters, passbook and WhatsApp
+> reminders, cash/UPI payment collection, bill search by number/phone/name/
+> product/barcode/serial, live warranty status, full-invoice cancel/return, and
+> daily sales/profit reports with galla closing, top products, and a low-stock
+> reorder list. Phase 5 (PWA offline app shell and polish) is next.
 
 ## What works today
 
@@ -31,7 +31,11 @@ the browser's IndexedDB database and can be exported to a JSON backup file.
 | Billing cart, five hold tabs, and serial/IMEI capture | Working |
 | Cash/UPI/card/split/udhaar checkout and GST bills | Working |
 | A4/thermal invoice printing and WhatsApp sharing | Working |
-| Udhaar ledger screens, warranty lookup, and reports | Phase 4 |
+| Khata ledger with village filters, passbook, and WhatsApp reminders | Working |
+| Cash/UPI khata payment collection and balance reconciliation | Working |
+| Bill search and invoice detail with live warranty status | Working |
+| Full-invoice cancel/return with stock and udhaar reversal | Working |
+| Daily sales/profit reports, galla closing, and low-stock reorder | Working |
 | Installable PWA / offline service worker | Phase 5 |
 
 ## Tech stack
@@ -145,8 +149,8 @@ path.
 | **Phase 1** | Foundation: app shell, database, seed data, settings, language, backup/restore |
 | **Phase 2** | Inventory and barcode studio: product CRUD, stock adjustments, search, labels |
 | **Phase 3** | Billing counter: scanner input, cart, payments, invoices, thermal/A4 printing — **complete** |
-| **Phase 4** | Khata ledger, warranty/serial lookup, daily sales and profit reports |
-| **Phase 5** | PWA polish: service worker, offline install, print tuning, performance |
+| **Phase 4** | Khata ledger, payment collection, warranty/serial lookup, full-invoice cancel/return, daily sales and profit reports — **complete** |
+| **Phase 5** | PWA polish: service worker, offline install, print tuning, performance — **next** |
 
 See [docs/PLAN.md](./docs/PLAN.md) for the detailed architecture and acceptance
 criteria. See
@@ -170,13 +174,17 @@ Current coverage includes money rounding, date/warranty helpers, invoice
 numbering, UPI URIs, shop and product validation, barcode/SKU helpers, CSV
 round-trips, stock-in movements, label pagination/skip offsets, JSON backup
 validation/restore, GST/discount allocation, invoice checkout and stock
-updates, udhaar khata entries, payment validation, and WhatsApp receipt text.
+updates, full-invoice reversal, udhaar khata entries, khata balance and payment
+validation, report ranges/summaries, warranty status, and WhatsApp receipt and
+reminder text.
 
 ## Known limitations
 
-- Khata ledger screens, warranty lookup, and sales/profit reports are Phase 4.
 - No multi-counter sync or cloud backup yet.
 - Invoice cancellation/return is designed as full-invoice only.
+- Cash/UPI refunds for cancelled or returned bills are handled manually; the app
+  does not track refund cash flow.
+- Inventory screens are English-only; Hinglish coverage is not complete there.
 - UPI QR is a payment request; the app does not confirm UPI payment automatically.
 - One billing laptop per shop is the intended V1 deployment model.
 - Camera scanning needs browser camera permission and a well-lit barcode.
